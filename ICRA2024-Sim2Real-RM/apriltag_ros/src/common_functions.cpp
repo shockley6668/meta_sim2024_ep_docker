@@ -222,11 +222,22 @@ AprilTagDetectionArray TagDetector::detectTags (
   {
     cv::cvtColor(image->image, gray_image, CV_BGR2GRAY);
   }
-  image_u8_t apriltag_image = { .width = gray_image.cols,
-                                  .height = gray_image.rows,
-                                  .stride = gray_image.cols,
-                                  .buf = gray_image.data
+  // image_u8_t apriltag_image = { .width = gray_image.cols,
+  //                                 .height = gray_image.rows,
+  //                                 .stride = gray_image.cols,
+  //                                 .buf = gray_image.data
+  // };
+  cv::Mat binary_image;
+  cv::threshold(gray_image, binary_image, 64, 255, cv::THRESH_BINARY);
+  gray_image.data = binary_image.data;
+  // 更新apriltag_image结构，以便使用二值化后的图像
+  image_u8_t apriltag_image = {
+    .width = binary_image.cols,
+    .height = binary_image.rows,
+    .stride = binary_image.cols, // static_cast<int>(binary_image.step)
+    .buf = binary_image.data
   };
+
 
   image_geometry::PinholeCameraModel camera_model;
   camera_model.fromCameraInfo(camera_info);

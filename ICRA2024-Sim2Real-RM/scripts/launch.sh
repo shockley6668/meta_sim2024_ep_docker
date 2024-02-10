@@ -24,7 +24,7 @@ docker run -dit --rm --name sim-server --network net-sim \
 
 sleep 10
 
-docker run -it --rm --name client --network net-sim \
+docker run -it --name client --network net-sim \
 	--cpus=5.6 -m 8192M \
 	-e ROS_MASTER_URI=http://ros-master:11311 \
 	-e DISPLAY=$DISPLAY \
