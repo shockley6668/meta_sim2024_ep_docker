@@ -1,0 +1,2 @@
+bt_frame:carto_navigation:rmus_solution:simple_planner
+-DCMAKE_BUILD_TYPE=RelWithDebInfo -DCATKIN_DEVEL_PREFIX=/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/devel -DCMAKE_INSTALL_PREFIX=/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/install -G Unix Makefiles

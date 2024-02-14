@@ -7,14 +7,15 @@ find_package(catkin REQUIRED COMPONENTS
   cartographer_ros
   cartographer_ros_msgs
   move_base
-  teb_local_planner
+  # teb_local_planner
 )
 find_package(cartographer)
 
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES agv_robot
-  CATKIN_DEPENDS  cartographer_ros_msgs cartographer_ros move_base teb_local_planner
+  CATKIN_DEPENDS  cartographer_ros_msgs cartographer_ros move_base 
+  # teb_local_planner
 #  DEPENDS cartographer
 )
 

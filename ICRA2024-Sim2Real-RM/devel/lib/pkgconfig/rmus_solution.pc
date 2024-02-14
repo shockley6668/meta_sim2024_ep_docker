@@ -1,0 +1,8 @@
+prefix=/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/devel
+
+Name: rmus_solution
+Description: Description of rmus_solution
+Version: 0.0.0
+Cflags: -I/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/devel/include
+Libs: -L${prefix}/lib 
+Requires: geometry_msgs roscpp rospy std_msgs message_runtime
