@@ -1,0 +1,8 @@
+prefix=/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/build/devel
+
+Name: simple_planner
+Description: Description of simple_planner
+Version: 0.1.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
