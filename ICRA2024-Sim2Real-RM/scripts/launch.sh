@@ -1,6 +1,6 @@
 #!/bin/bash
 SERVER_IMAGE=${SERVER_IMAGE:-rmus2022/server:result_pub_fix}
-CLIENT_IMAGE=${CLIENT_IMAGE:-meta_sim/test:v1.2} # Just for test, if not effect, please change it to your client docker image. 
+CLIENT_IMAGE=${CLIENT_IMAGE:-meta_sim/test:v1.3} # Just for test, if not effect, please change it to your client docker image. 
 CLI_EXE=$@
 
 xhost +

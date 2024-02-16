@@ -1,7 +1,21 @@
 # meta_sim2024_ep_docker
  meta_sim2024_ep_docker
 
-第一次用需要先build一下
+第一次用需要先build一下,即前往/ICRA2024-Sim2Real-RM目录下运行CLIENT_IMAGE=meta_sim/test:v1.3 bash scripts/build.sh
+
+目前导航方法有两种，一种是movebase，一种是simple planner
+
+simple planner使用方法
+1.在src/simple_planner/launch/planner.launch下修改
+
+```<param name="point_num" value="3"/>  ```
+
+意思是通过三次样条曲线插值，把三个点变成一条平滑的曲线，可通过修改value使得曲线更平滑，但你也要打更多的点。
+```
+/target_yaw 到达目标点的yaw角度（rad）
+/clicked_point 用于发布离散的点,消息类型：geometry_msgs/PointStamped
+
+```
 
 2024.2.14  oplin 更改记录
 1. 将 `apriltag_ros` 中的去除重复逻辑进行了修改，
