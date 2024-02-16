@@ -3,6 +3,7 @@
 
 bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/src/basic_frame.cpp \
   /usr/include/stdc-predef.h \
+  /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/basic_frame.h \
   /opt/ros/noetic/include/ros/ros.h \
   /opt/ros/noetic/include/ros/time.h \
   /opt/ros/noetic/include/ros/platform.h \
@@ -1766,7 +1767,7 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
   /usr/include/x86_64-linux-gnu/c++/9/bits/basic_file.h \
   /usr/include/x86_64-linux-gnu/c++/9/bits/c++io.h \
   /usr/include/c++/9/bits/fstream.tcc \
-  /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/behaviortree_cpp/bt_factory.h \
+  /usr/local/include/behaviortree_cpp/bt_factory.h \
   /usr/include/c++/9/filesystem \
   /usr/include/c++/9/bits/fs_fwd.h \
   /usr/include/c++/9/bits/fs_path.h \
@@ -1833,12 +1834,20 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
   /usr/local/include/behaviortree_cpp/decorators/script_precondition.h \
   /usr/local/include/behaviortree_cpp/decorators/timeout_node.h \
   /usr/local/include/behaviortree_cpp/decorators/delay_node.h \
-  /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/behaviortree_cpp/xml_parsing.h \
+  /usr/local/include/behaviortree_cpp/xml_parsing.h \
   /usr/local/include/behaviortree_cpp/bt_parser.h \
-  /usr/local/include/behaviortree_cpp/bt_factory.h \
-  /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/behaviortree_cpp/dummy_nodes.h \
-  /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/behaviortree_cpp/movebase_node.h \
-  /usr/local/include/behaviortree_cpp/json_export.h \
+  /usr/local/include/behaviortree_cpp/dummy_nodes.h \
+  /usr/local/include/behaviortree_cpp/loggers/bt_file_logger_v2.h \
+  /usr/local/include/behaviortree_cpp/loggers/abstract_logger.h \
+  /usr/local/include/behaviortree_cpp/loggers/groot2_publisher.h \
+  /usr/local/include/behaviortree_cpp/loggers/groot2_protocol.h \
+  /usr/include/c++/9/random \
+  /usr/include/c++/9/bits/random.h \
+  /usr/include/x86_64-linux-gnu/c++/9/bits/opt_random.h \
+  /usr/include/c++/9/bits/random.tcc \
+  /usr/include/c++/9/numeric \
+  /usr/include/c++/9/bits/stl_numeric.h \
+  /usr/include/c++/9/pstl/glue_numeric_defs.h \
   /usr/local/include/behaviortree_cpp/contrib/json.hpp \
   /usr/include/c++/9/forward_list \
   /usr/include/c++/9/bits/forward_list.h \
@@ -1854,13 +1863,22 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
   /usr/include/c++/9/bits/mask_array.h \
   /usr/include/c++/9/bits/indirect_array.h \
   /usr/include/c++/9/version \
-  /usr/include/c++/9/numeric \
-  /usr/include/c++/9/bits/stl_numeric.h \
-  /usr/include/c++/9/pstl/glue_numeric_defs.h \
-  /usr/include/c++/9/any
+  /usr/include/c++/9/any \
+  /usr/local/include/behaviortree_cpp/loggers/bt_sqlite_logger.h \
+  /usr/local/include/behaviortree_cpp/movebase_node.h \
+  /usr/local/include/behaviortree_cpp/json_export.h \
+  /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/simple_planner_node.h \
+  /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/goal_node.h \
+  /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/observe_node.h \
+  /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/aim_node.h \
+  /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/PIDController.h
 
 
-/usr/include/c++/9/bits/stl_numeric.h:
+/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/PIDController.h:
+
+/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/simple_planner_node.h:
+
+/usr/local/include/behaviortree_cpp/json_export.h:
 
 /usr/include/c++/9/version:
 
@@ -1874,11 +1892,15 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 
 /usr/include/c++/9/bits/forward_list.tcc:
 
-/usr/local/include/behaviortree_cpp/json_export.h:
+/usr/include/c++/9/bits/stl_numeric.h:
 
-/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/behaviortree_cpp/dummy_nodes.h:
+/usr/include/c++/9/bits/random.tcc:
 
-/usr/local/include/behaviortree_cpp/bt_factory.h:
+/usr/include/x86_64-linux-gnu/c++/9/bits/opt_random.h:
+
+/usr/local/include/behaviortree_cpp/loggers/groot2_publisher.h:
+
+/usr/local/include/behaviortree_cpp/dummy_nodes.h:
 
 /usr/local/include/behaviortree_cpp/bt_parser.h:
 
@@ -1944,7 +1966,7 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 
 /usr/include/c++/9/filesystem:
 
-/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/behaviortree_cpp/bt_factory.h:
+/usr/local/include/behaviortree_cpp/bt_factory.h:
 
 /usr/include/x86_64-linux-gnu/c++/9/bits/c++io.h:
 
@@ -1955,6 +1977,8 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 /opt/ros/noetic/include/actionlib/client/comm_state_machine_imp.h:
 
 /opt/ros/noetic/include/actionlib/client/client_goal_handle_imp.h:
+
+/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/observe_node.h:
 
 /opt/ros/noetic/include/actionlib_msgs/GoalStatusArray.h:
 
@@ -2141,8 +2165,6 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 /usr/include/boost/thread/detail/thread_group.hpp:
 
 /usr/include/boost/io_fwd.hpp:
-
-/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/behaviortree_cpp/xml_parsing.h:
 
 /usr/include/boost/io/ios_state.hpp:
 
@@ -2788,7 +2810,7 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 
 /opt/ros/noetic/include/ros/parameter_adapter.h:
 
-/usr/include/boost/mpl/aux_/push_front_impl.hpp:
+/opt/ros/noetic/include/ros/subscription_callback_helper.h:
 
 /usr/include/boost/mpl/inserter.hpp:
 
@@ -3052,8 +3074,6 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 
 /usr/include/boost/predef/compiler/ekopath.h:
 
-/opt/ros/noetic/include/ros/subscription_callback_helper.h:
-
 /usr/include/boost/preprocessor/list/fold_right.hpp:
 
 /opt/ros/noetic/include/tf/LinearMath/QuadWord.h:
@@ -3304,6 +3324,8 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 
 /usr/include/boost/mpl/front_inserter.hpp:
 
+/usr/local/include/behaviortree_cpp/loggers/abstract_logger.h:
+
 /usr/include/boost/preprocessor/array/elem.hpp:
 
 /usr/include/c++/9/bits/node_handle.h:
@@ -3412,6 +3434,8 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 
 /usr/include/c++/9/cwchar:
 
+/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/aim_node.h:
+
 /usr/include/boost/mpl/vector.hpp:
 
 /usr/include/boost/numeric/conversion/detail/conversion_traits.hpp:
@@ -3447,6 +3471,8 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 /usr/include/boost/concept/usage.hpp:
 
 /usr/lib/gcc/x86_64-linux-gnu/9/include/stdarg.h:
+
+/usr/include/c++/9/bits/random.h:
 
 /usr/include/boost/preprocessor/enum.hpp:
 
@@ -3638,39 +3664,9 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 
 /usr/include/boost/predef/architecture/rs6k.h:
 
-/usr/include/boost/mpl/lambda.hpp:
-
-/usr/include/c++/9/bits/locale_classes.h:
-
-/usr/include/boost/mpl/apply.hpp:
-
-/usr/include/boost/date_time/time_clock.hpp:
-
-/usr/include/boost/mpl/find.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h:
-
-/usr/include/boost/detail/select_type.hpp:
-
-/usr/include/boost/config/detail/select_compiler_config.hpp:
-
-/opt/ros/noetic/include/geometry_msgs/Transform.h:
-
-/usr/include/c++/9/tr1/poly_hermite.tcc:
-
-/usr/include/boost/predef/os/bsd.h:
-
 /usr/include/c++/9/bits/ptr_traits.h:
 
-/usr/include/boost/signals2/detail/tracked_objects_visitor.hpp:
-
-/usr/include/log4cxx/helpers/transcoder.h:
-
-/usr/include/x86_64-linux-gnu/bits/flt-eval-method.h:
-
-/usr/include/x86_64-linux-gnu/bits/stdlib.h:
-
-/usr/include/boost/preprocessor/iterate.hpp:
+/usr/include/c++/9/random:
 
 /usr/include/boost/smart_ptr/enable_shared_from_this.hpp:
 
@@ -3772,6 +3768,28 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 
 /usr/include/boost/predef/version_number.h:
 
+/usr/include/boost/mpl/lambda.hpp:
+
+/usr/include/c++/9/bits/locale_classes.h:
+
+/usr/include/boost/mpl/apply.hpp:
+
+/usr/include/boost/date_time/time_clock.hpp:
+
+/usr/include/boost/mpl/find.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h:
+
+/usr/include/boost/detail/select_type.hpp:
+
+/usr/include/boost/config/detail/select_compiler_config.hpp:
+
+/opt/ros/noetic/include/geometry_msgs/Transform.h:
+
+/usr/include/c++/9/tr1/poly_hermite.tcc:
+
+/usr/include/boost/predef/os/bsd.h:
+
 /usr/include/boost/mpl/bool_fwd.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
@@ -3849,10 +3867,6 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 /usr/include/boost/preprocessor/repetition/repeat_from_to.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/wchar2.h:
-
-/usr/include/c++/9/typeinfo:
-
-/usr/include/boost/preprocessor/detail/check.hpp:
 
 /usr/include/c++/9/bits/std_function.h:
 
@@ -4020,9 +4034,25 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 
 /usr/include/x86_64-linux-gnu/bits/types/clock_t.h:
 
+/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/goal_node.h:
+
 /usr/include/boost/mpl/size_t.hpp:
 
 /usr/include/c++/9/bits/basic_string.h:
+
+/usr/include/boost/signals2/detail/tracked_objects_visitor.hpp:
+
+/usr/include/log4cxx/helpers/transcoder.h:
+
+/usr/include/x86_64-linux-gnu/bits/flt-eval-method.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib.h:
+
+/usr/include/boost/preprocessor/iterate.hpp:
+
+/usr/include/boost/preprocessor/detail/check.hpp:
+
+/usr/include/c++/9/typeinfo:
 
 /usr/local/include/behaviortree_cpp/decorators/keep_running_until_failure_node.h:
 
@@ -4194,8 +4224,6 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 
 /usr/lib/gcc/x86_64-linux-gnu/9/include/quadmath.h:
 
-/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/behaviortree_cpp/movebase_node.h:
-
 /usr/include/boost/container_hash/hash_fwd.hpp:
 
 /usr/include/boost/date_time/gregorian/greg_year.hpp:
@@ -4291,6 +4319,8 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 /usr/include/boost/range/detail/msvc_has_iterator_workaround.hpp:
 
 /usr/include/boost/predef/compiler/gcc_xml.h:
+
+/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/basic_frame.h:
 
 /usr/include/boost/system/detail/generic_category.hpp:
 
@@ -4432,13 +4462,13 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 
 /usr/include/boost/numeric/conversion/int_float_mixture_enum.hpp:
 
+/usr/include/boost/type_traits/is_integral.hpp:
+
 /usr/include/boost/mpl/not.hpp:
 
 /usr/include/c++/9/tr1/ell_integral.tcc:
 
 /usr/include/boost/predef/os/solaris.h:
-
-/usr/include/boost/type_traits/is_integral.hpp:
 
 /usr/include/boost/config/helper_macros.hpp:
 
@@ -4465,6 +4495,8 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 /usr/include/boost/mpl/O1_size.hpp:
 
 /usr/include/boost/predef/architecture/x86/64.h:
+
+/usr/include/boost/mpl/aux_/push_front_impl.hpp:
 
 /usr/include/boost/signals2/variadic_signal.hpp:
 
@@ -4846,6 +4878,8 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 
 /usr/include/boost/predef/library/c/uc.h:
 
+/usr/local/include/behaviortree_cpp/movebase_node.h:
+
 /usr/include/log4cxx/helpers/objectptr.h:
 
 /usr/include/boost/predef/library/std/libcomo.h:
@@ -4870,6 +4904,8 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 
 /opt/ros/noetic/include/ros/static_assert.h:
 
+/usr/local/include/behaviortree_cpp/xml_parsing.h:
+
 /usr/include/boost/preprocessor/stringize.hpp:
 
 /usr/include/boost/mpl/list/list0.hpp:
@@ -4881,6 +4917,8 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 /usr/include/boost/numeric/conversion/converter.hpp:
 
 /usr/include/c++/9/bits/stl_set.h:
+
+/usr/local/include/behaviortree_cpp/loggers/bt_sqlite_logger.h:
 
 /usr/include/c++/9/bits/stl_multiset.h:
 
@@ -5468,6 +5506,8 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 
 /usr/include/boost/predef/library/std/stdcpp3.h:
 
+/usr/local/include/behaviortree_cpp/loggers/groot2_protocol.h:
+
 /usr/include/boost/next_prior.hpp:
 
 /usr/include/boost/predef/library/std/stlport.h:
@@ -5537,6 +5577,8 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: /home/ubuntu/meta_sim
 /usr/include/boost/predef/detail/test.h:
 
 /usr/include/boost/chrono/detail/system.hpp:
+
+/usr/local/include/behaviortree_cpp/loggers/bt_file_logger_v2.h:
 
 /usr/include/boost/chrono/clock_string.hpp:
 

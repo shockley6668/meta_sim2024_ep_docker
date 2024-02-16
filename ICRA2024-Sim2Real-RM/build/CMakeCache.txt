@@ -427,9 +427,6 @@ actionlib_msgs_DIR:PATH=/opt/ros/noetic/share/actionlib_msgs/cmake
 //Value Computed by CMake
 bt_frame_BINARY_DIR:STATIC=/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/build/bt_frame
 
-//The directory containing a CMake configuration file for bt_frame.
-bt_frame_DIR:PATH=bt_frame_DIR-NOTFOUND
-
 //Value Computed by CMake
 bt_frame_IS_TOP_LEVEL:STATIC=OFF
 

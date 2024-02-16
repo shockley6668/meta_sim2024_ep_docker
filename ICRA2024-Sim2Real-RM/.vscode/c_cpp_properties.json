@@ -6,7 +6,7 @@
                 "${workspaceFolder}/**",
                 "/opt/ros/noetic/include/**",
                 "/usr/include/**",
-                "/usr/local/include/behaviortree_cpp"
+                // "/usr/local/include/behaviortree_cpp"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/g++",

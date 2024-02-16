@@ -7,5 +7,9 @@
     "python.analysis.extraPaths": [
         "/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/devel/lib/python3/dist-packages",
         "/opt/ros/noetic/lib/python3/dist-packages"
-    ]
+    ],
+    "files.associations": {
+        "thread": "cpp"
+    },
+    "ros.distro": "noetic"
 }
