@@ -1,0 +1,45 @@
+<root BTCPP_format="4">
+    <BehaviorTree ID="MainTree" _fullpath="">
+        <Sequence name="Sequence">
+            <Sequence name="goto_watch_board">
+                <Sequence name="aim_to_board">
+                    <Goal name="board"/>
+                    <SimplePlanner name="moveto_board"/>
+                </Sequence>
+                <Observe name="search_need_block"/>
+            </Sequence>
+            <Sequence name="find_there_and_back">
+                <Sequence name="block_place">
+                    <Goal name="next_block"/>
+                    <SimplePlanner name="moveto_block"/>
+                </Sequence>
+                <Aim name="aim_block"/>
+                <Take name="take_block"/>
+                <Sequence name="aim_to_board">
+                    <Goal name="board"/>
+                    <SimplePlanner name="moveto_board"/>
+                </Sequence>
+                <Place name="place_block"/>
+            </Sequence>
+            <Stop name="stop"/>
+        </Sequence>
+    </BehaviorTree>
+    <TreeNodesModel>
+        <Action ID="Aim"/>
+        <Action ID="Goal">
+            <output_port name="next_goal" type="std::string"/>
+            <input_port name="ps" type="std::string"/>
+            <input_port name="blocks" type="std::string"/>
+            <input_port name="board" type="std::string"/>
+        </Action>
+        <Action ID="Observe">
+            <output_port name="blocks" type="std::string"/>
+        </Action>
+        <Action ID="Place"/>
+        <Action ID="SimplePlanner">
+            <input_port name="goal" type="std::string"/>
+        </Action>
+        <Action ID="Stop"/>
+        <Action ID="Take"/>
+    </TreeNodesModel>
+</root>
