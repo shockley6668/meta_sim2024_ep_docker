@@ -222,11 +222,46 @@ AprilTagDetectionArray TagDetector::detectTags (
   {
     cv::cvtColor(image->image, gray_image, CV_BGR2GRAY);
   }
-  image_u8_t apriltag_image = { .width = gray_image.cols,
-                                  .height = gray_image.rows,
-                                  .stride = gray_image.cols,
-                                  .buf = gray_image.data
+  // image_u8_t apriltag_image = { .width = gray_image.cols,
+  //                                 .height = gray_image.rows,
+  //                                 .stride = gray_image.cols,
+  //                                 .buf = gray_image.data
+  // };
+
+/*
+// TODO threshold solve
+  // 二值化处理
+  cv::Mat binary_image;
+  cv::threshold(gray_image, binary_image, 64, 255, cv::THRESH_BINARY);
+
+  // 更新apriltag_image结构，以便使用二值化后的图像
+  image_u8_t apriltag_image = {
+    .width = binary_image.cols,
+    .height = binary_image.rows,
+    .stride = static_cast<int>(binary_image.step), // 注意：step可能不等于cols
+    .buf = binary_image.data
   };
+*/
+
+
+  // TODO对比度增强参数
+  double alpha = 1.8; // 对比度控制(1.0-3.0)
+  int beta = 0;       // 亮度控制(0-100) 0 default
+
+  // 增强对比度，使用convertTo函数来调整灰度图像的对比度和亮度
+  cv::Mat contrast_enhanced_image;
+  gray_image.convertTo(contrast_enhanced_image, -1, alpha, beta);
+
+  // 确保使用contrast_enhanced_image来创建apriltag_image结构
+  image_u8_t apriltag_image = {
+    .width = contrast_enhanced_image.cols,
+    .height = contrast_enhanced_image.rows,
+    .stride = static_cast<int>(contrast_enhanced_image.step), // 注意：步长(step)可能不等于列数(cols)
+    .buf = contrast_enhanced_image.data
+  };
+
+  
+
 
   image_geometry::PinholeCameraModel camera_model;
   camera_model.fromCameraInfo(camera_info);
@@ -415,6 +450,80 @@ int TagDetector::idComparison (const void* first, const void* second)
   return (id1 < id2) ? -1 : ((id1 == id2) ? 0 : 1);
 }
 
+// TODO save the biggest area
+void TagDetector::removeDuplicates() {
+    zarray_sort(detections_, &idComparison); // 首先对检测到的标签进行排序，基于它们的ID
+
+    // 定义一个匿名函数来计算标签的面积，输入为apriltag_detection_t指针，输出为该标签的面积
+    auto tagArea = [](const apriltag_detection_t* det) -> double {
+        double area = 0.0; // 初始化面积为0
+        // 根据检测到的四个角点计算标签的多边形面积（使用简单的多边形面积计算公式）
+        for (int i = 0; i < 4; i++) {
+            int next = (i + 1) % 4; // 循环遍历四个角点
+            area += det->p[i][0] * det->p[next][1] - det->p[next][0] * det->p[i][1];
+        }
+        return fabs(area) / 2.0; // 返回绝对值的一半作为面积
+    };
+
+    // 遍历所有检测到的标签，查找和移除重复的标签
+    for (int i = 0; i < zarray_size(detections_)-1; i++) {
+        apriltag_detection_t *detection_i;
+        zarray_get(detections_, i, &detection_i);
+
+        for (int j = i + 1; j < zarray_size(detections_); ) {
+            apriltag_detection_t *detection_j;
+            zarray_get(detections_, j, &detection_j);
+
+            // 如果检测到的两个标签ID相同，则比较它们的面积
+            if (detection_i->id == detection_j->id) {
+                double area_i = tagArea(detection_i);
+                double area_j = tagArea(detection_j);
+
+                // 保留面积较大的标签，并移除面积较小的标签
+                if (area_i > area_j) {
+                    apriltag_detection_destroy(detection_j); // 销毁较小面积的标签
+                    zarray_remove_index(detections_, j, 0); // 从数组中移除
+                    // 注意：这里不需要j++，因为移除后，下一个元素会移动到当前位置
+                } else {
+                    apriltag_detection_destroy(detection_i); // 销毁较小面积的标签
+                    zarray_remove_index(detections_, i, 0); // 从数组中移除
+                    break; // 跳出内层循环，继续检查下一个标签
+                }
+            } else {
+                j++; // 如果ID不同，则移动到下一个标签
+            }
+        }
+    }
+}
+
+
+//TODO edit logic, remove duplicated and save the first detected one
+/*
+void TagDetector::removeDuplicates() {
+  zarray_sort(detections_, &idComparison);
+  int count = 0;
+  while (count < zarray_size(detections_)-1) {
+    apriltag_detection_t *current_detection, *next_detection;
+    zarray_get(detections_, count, &current_detection);
+    int id_current = current_detection->id;
+
+    // 检查后一个标签是否与当前标签ID相同
+    zarray_get(detections_, count + 1, &next_detection);
+    if (id_current == next_detection->id) {
+      // 移除后一个重复的标签
+      apriltag_detection_destroy(next_detection);
+      zarray_remove_index(detections_, count + 1, 0);
+    } else {
+      // 只有当后一个标签ID不同，才移动到下一个标签
+      count++;
+    }
+  }
+}
+*/
+
+
+// original
+/*
 void TagDetector::removeDuplicates ()
 {
   zarray_sort(detections_, &idComparison);
@@ -459,6 +568,8 @@ void TagDetector::removeDuplicates ()
     }
   }
 }
+*/
+
 
 void TagDetector::addObjectPoints (
     double s, cv::Matx44d T_oi, std::vector<cv::Point3d >& objectPoints) const

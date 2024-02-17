@@ -21,7 +21,7 @@
 
     <param name="camera_frame" type="str" value="camera_color_frame" />
 
-
+    <param name="remove_duplicates" type="bool" value="false" />
     <param name="publish_tag_detections_image" type="bool" value="true" /><!-- default: false -->
     <param name="queue_size" type="int" value="$(arg queue_size)" />
 

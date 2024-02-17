@@ -1,6 +1,6 @@
 #!/bin/bash
 SERVER_IMAGE=${SERVER_IMAGE:-rmus2022/server:result_pub_fix}
-CLIENT_IMAGE=${CLIENT_IMAGE:-meta_sim/test:v1.1}
+CLIENT_IMAGE=${CLIENT_IMAGE:-meta_sim/test:v1.2}
 CLI_EXE=$@
 
 xhost +
