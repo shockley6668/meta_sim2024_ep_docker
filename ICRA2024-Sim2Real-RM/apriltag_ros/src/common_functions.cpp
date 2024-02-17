@@ -228,20 +228,20 @@ AprilTagDetectionArray TagDetector::detectTags (
   //                                 .buf = gray_image.data
   // };
 
-/*
-// TODO threshold solve
-  // 二值化处理
-  cv::Mat binary_image;
-  cv::threshold(gray_image, binary_image, 64, 255, cv::THRESH_BINARY);
 
-  // 更新apriltag_image结构，以便使用二值化后的图像
-  image_u8_t apriltag_image = {
-    .width = binary_image.cols,
-    .height = binary_image.rows,
-    .stride = static_cast<int>(binary_image.step), // 注意：step可能不等于cols
-    .buf = binary_image.data
-  };
-*/
+// // TODO threshold solve
+//   // 二值化处理
+//   cv::Mat binary_image;
+//   cv::threshold(gray_image, binary_image, 64, 255, cv::THRESH_BINARY);
+
+//   // 更新apriltag_image结构，以便使用二值化后的图像
+//   image_u8_t apriltag_image = {
+//     .width = binary_image.cols,
+//     .height = binary_image.rows,
+//     .stride = static_cast<int>(binary_image.step), // 注意：step可能不等于cols
+//     .buf = binary_image.data
+//   };
+
 
 
   // TODO对比度增强参数
