@@ -26,6 +26,7 @@ sleep 10
 
 docker run -it --name client --network net-sim \
 	--cpus=5.6 -m 8192M \
+	-p 1667:1667\
 	-e ROS_MASTER_URI=http://ros-master:11311 \
 	-e DISPLAY=$DISPLAY \
 	-e QT_X11_NO_MITSHM=1 \
