@@ -126,10 +126,14 @@ include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
   /opt/ros/noetic/include/
-  /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/behaviortree_cpp/
-  /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/src/behaviortree_cpp/
-  /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/
+  /opt/ep_ws/BehaviorTree.CPP/include/
+  /opt/ep_ws/BehaviorTree.CPP/include/behaviortree_cpp/
+  /opt/ep_ws/BehaviorTree.CPP/include/sample_nodes/
+  /opt/ep_ws/BehaviorTree.CPP/lib/
+  /opt/ep_ws/src/rmus_solution/bt_frame/include/
   /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/BehaviorTree.CPP/include/behaviortree_cpp/
+  /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/BehaviorTree.CPP/sample_nodes/
+  /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/
 )
 
 ## Declare a C++ library
@@ -164,9 +168,8 @@ add_executable(basic_frame
 ## Specify libraries to link a library or executable target against
 target_link_libraries(basic_frame
   ${catkin_LIBRARIES}
+  -L/opt/ep_ws/BehaviorTree.CPP/lib/
   -lbehaviortree_cpp
-  -ldummynodes
-  -lmovebasenodes
 )
 
 #############

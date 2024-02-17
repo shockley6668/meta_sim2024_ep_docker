@@ -13,7 +13,6 @@
                     <Goal name="next_block"/>
                     <SimplePlanner name="moveto_block"/>
                 </Sequence>
-                <Aim name="aim_block"/>
                 <Take name="take_block"/>
                 <Sequence name="aim_to_board">
                     <Goal name="board"/>

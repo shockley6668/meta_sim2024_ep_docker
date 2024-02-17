@@ -2,7 +2,6 @@
 #include "simple_planner_node.h"
 #include "goal_node.h"
 #include "observe_node.h"
-#include "aim_node.h"
 #include "take_node.h"
 
 using namespace BT;
@@ -59,7 +58,6 @@ static const char* xml_text = R"(
                     <Goal name="next_block"/>
                     <SimplePlanner name="moveto_block"/>
                 </Sequence>
-                <Aim name="aim_block"/>
                 <Take name="take_block"/>
                 <Sequence name="aim_to_board">
                     <Goal name="board"/>
@@ -95,7 +93,6 @@ int main()
     factory.registerNodeType<Goal>("Goal");
     factory.registerNodeType<SimplePlanner>("SimplePlanner");
     factory.registerNodeType<Observe>("Observe");
-    factory.registerNodeType<Aim>("Aim");
     factory.registerNodeType<Take>("Take");
     factory.registerNodeType<Place>("Place");
 

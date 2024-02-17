@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = -DROSCONSOLE_BACKEND_LOG4CXX -DROS_BUILD_SHARED_LIBS=1 -DROS_PACKAGE_NAME=\"bt_frame\"
 
-CXX_INCLUDES = -I/opt/ros/noetic/include -I/opt/ros/noetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp -I/usr/include/eigen3 -I/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/behaviortree_cpp -I/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/src/behaviortree_cpp -I/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include
+CXX_INCLUDES = -I/opt/ros/noetic/include -I/opt/ros/noetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp -I/usr/include/eigen3 -I/opt/ep_ws/BehaviorTree.CPP/include -I/opt/ep_ws/BehaviorTree.CPP/include/behaviortree_cpp -I/opt/ep_ws/BehaviorTree.CPP/include/sample_nodes -I/opt/ep_ws/src/rmus_solution/bt_frame/include -I/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/BehaviorTree.CPP/include/behaviortree_cpp -I/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/BehaviorTree.CPP/sample_nodes -I/home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include
 
 CXX_FLAGS = -O2 -g -DNDEBUG -std=gnu++17
 

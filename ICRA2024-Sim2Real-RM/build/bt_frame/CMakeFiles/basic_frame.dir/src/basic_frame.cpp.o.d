@@ -1678,7 +1678,6 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: \
  /usr/local/include/behaviortree_cpp/decorators/delay_node.h \
  /usr/local/include/behaviortree_cpp/xml_parsing.h \
  /usr/local/include/behaviortree_cpp/bt_parser.h \
- /usr/local/include/behaviortree_cpp/dummy_nodes.h \
  /usr/local/include/behaviortree_cpp/loggers/bt_file_logger_v2.h \
  /usr/local/include/behaviortree_cpp/loggers/abstract_logger.h \
  /usr/local/include/behaviortree_cpp/loggers/groot2_publisher.h \
@@ -1701,10 +1700,9 @@ bt_frame/CMakeFiles/basic_frame.dir/src/basic_frame.cpp.o: \
  /usr/include/c++/9/bits/indirect_array.h /usr/include/c++/9/version \
  /usr/include/c++/9/any \
  /usr/local/include/behaviortree_cpp/loggers/bt_sqlite_logger.h \
- /usr/local/include/behaviortree_cpp/movebase_node.h \
  /usr/local/include/behaviortree_cpp/json_export.h \
  /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/simple_planner_node.h \
  /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/goal_node.h \
  /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/observe_node.h \
- /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/aim_node.h \
+ /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/take_node.h \
  /home/ubuntu/meta_sim2024_ep_docker/ICRA2024-Sim2Real-RM/src/bt_frame/include/PIDController.h
