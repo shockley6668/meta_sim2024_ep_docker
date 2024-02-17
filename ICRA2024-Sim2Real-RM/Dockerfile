@@ -1,5 +1,5 @@
 ##########################################################################
-FROM shockley/meta_sim_main:v1.0
+FROM shockley/meta_sim_main:v1.1
 
 # Add source codes into images and install dependencies
 ADD src /opt/ep_ws/src/rmus_solution
@@ -15,41 +15,38 @@ RUN apt-get update -q && \
      apt-get clean
 
 # Install extra dependencies with apt
-RUN apt-get update && \
-     apt-get install -y --no-install-recommends \
-     ros-noetic-depthimage-to-laserscan ros-noetic-map-server python3-tf-conversions ros-noetic-global-planner && \
-     rm -rf /var/lib/apt/lists/* && apt-get clean
+# RUN apt-get update && \
+#      apt-get install -y --no-install-recommends \
+#      ros-noetic-rqt ros-noetic-rqt-common-plugins libzmq3-dev ros-noetic-depthimage-to-laserscan ros-noetic-map-server python3-tf-conversions ros-noetic-global-planner && \
+#      rm -rf /var/lib/apt/lists/* && apt-get clean
 # RUN rosdep install --from-paths src --ignore-src -r -y
 #Install extra dependencies with pip
-RUN pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple scipy
+# RUN pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple scipy
 #Install extra dependencies with pip
 # RUN pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple conan
 # RUN conan profile detect
 
-# ADD BehaviorTree.CPP /opt/BehaviorTree.CPP
-# WORKDIR /opt/BehaviorTree.CPP
-# RUN mkdir build; cd build
-# RUN conan install ../BehaviorTree.CPP --output-folder=. --build=missing && \
-# cmake ../BehaviorTree.CPP -DCMAKE_TOOLCHAIN_FILE="conan_toolchain.cmake" && \
-# cmake --build . --parallel
 
 # ADD apriltag /opt/apriltag
 # WORKDIR /opt/apriltag
 # RUN sudo cmake -B build -DCMAKE_BUILD_TYPE=Release \
 # &&sudo cmake --build build --target install
 
-ADD apriltag_ros /opt/ep_ws/src/apriltag_ros
-ADD threshold_image /opt/ep_ws/src/threshold_image
-WORKDIR /opt/ep_ws
+# ADD BehaviorTree.CPP /opt/ep_ws/src/BehaviorTree.CPP
+
+# ADD apriltag_ros /opt/ep_ws/src/apriltag_ros
+# ADD threshold_image /opt/ep_ws/src/threshold_image
+# ADD ep_teleop /opt/ep_ws/src/ep_teleop
+# WORKDIR /opt/ep_ws
 RUN source /opt/workspace/devel_isolated/setup.bash && catkin_make install --use-ninja -DSETUPTOOLS_DEB_LAYOUT=OFF
 
 
 #RUN source /opt/workspace/devel_isolated/setup.bash && catkin_make install --use-ninja -DSETUPTOOLS_DEB_LAYOUT=ON
 # Patch for keyboard
-ADD ep_teleop /opt/ep_ws/src/ep_teleop
+
 
 # Make client package
-RUN source /opt/workspace/devel_isolated/setup.bash && catkin_make install --use-ninja -DSETUPTOOLS_DEB_LAYOUT=OFF
+
 ENV ENV_ROBOT_MODE=sim
 
 # Add start script
@@ -57,6 +54,3 @@ ADD start.sh /opt/start.sh
 RUN echo "source /opt/ep_ws/devel/setup.bash" >> ~/.bashrc
 CMD /opt/ros/noetic/env.sh /opt/ep_ws/devel/env.sh /opt/start.sh
 
-#TODO oplin add command
-RUN apt-get update && \
-     apt-get install -y ros-noetic-teleop-twist-keyboard ros-noetic-rqt ros-noetic-rqt-common-plugins
