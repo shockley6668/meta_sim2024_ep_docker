@@ -83,6 +83,19 @@ void PositionToJson(nlohmann::json& j, const Position2D& p)
   j["y"] = p.y;
 }
 
+
+template <class T> static void RosBuilder(BehaviorTreeFactory& factory, const std::string& ID, ros::NodeHandle& nh)
+{
+    NodeBuilder builder = [&nh](const std::string& name, const NodeConfiguration& config) {
+        return std::make_unique<T>(nh, name, config);
+    };
+    TreeNodeManifest manifest;
+    manifest.type = getType<T>();
+    manifest.ports = T::providedPorts();
+    manifest.registration_ID = ID;
+    factory.registerBuilder(manifest, builder);
+}
+
 /**
  * @brief The entry point of the program.
  * 
@@ -98,14 +111,8 @@ int main(int argc, char **argv)
 
     BehaviorTreeFactory factory;
 
-    NodeBuilder builder = [&nh](const std::string& name, const NodeConfiguration& config) {
-        return std::make_unique<GotoWatchBoard>(nh,name, config);
-    };
-    TreeNodeManifest manifest;
-    manifest.type = getType<GotoWatchBoard>();
-    manifest.ports = GotoWatchBoard::providedPorts();
-    manifest.registration_ID = "GotoWatchBoard";
-    factory.registerBuilder(manifest, builder);
+    
+    RosBuilder<GotoWatchBoard>(factory, "GotoWatchBoard", nh);
     factory.registerNodeType<Stop>("Stop");
     factory.registerNodeType<Goal>("Goal");
     factory.registerNodeType<SimplePlanner>("SimplePlanner");
@@ -138,12 +145,13 @@ int main(int argc, char **argv)
     bool append_to_database = true;
     BT::SqliteLogger sqlite_logger(tree, "t12_sqlitelog.db3", append_to_database);
     NodeStatus status = NodeStatus::IDLE;
-    ros::Rate loop_rate(100); // 100 Hz
+    ros::Rate loop_rate(10); // 10 Hz
     while( ros::ok() && (status == NodeStatus::IDLE || status == NodeStatus::RUNNING))
     {
-        std::cout << "Start" << std::endl;
-        tree.tickWhileRunning();
         ros::spinOnce();
+        std::cout << "Start" << std::endl;
+        tree.tickOnce();
+        //tree.sleep(std::chrono::milliseconds(100));
         loop_rate.sleep();
     }
     return 0;
