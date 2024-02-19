@@ -89,11 +89,24 @@ int main()
 {
     BehaviorTreeFactory factory;
 
+<<<<<<< Updated upstream
     factory.registerNodeType<Stop>("Stop");
     factory.registerNodeType<Goal>("Goal");
     factory.registerNodeType<SimplePlanner>("SimplePlanner");
     factory.registerNodeType<Observe>("Observe");
     factory.registerNodeType<Take>("Take");
+=======
+    
+    RosBuilder<GotoWatchBoard>(factory, "GotoWatchBoard", nh);
+    RosBuilder<Take>(factory, "Take", nh);
+    factory.registerNodeType<Stop>("Stop");
+    factory.registerNodeType<Goal>("Goal");
+    factory.registerNodeType<SimplePlanner>("SimplePlanner");
+    //factory.registerNodeType<Observe>("Observe");
+    // factory.registerNodeType<GotoWatchBoard>("GotoWatchBoard");
+    
+    // factory.registerNodeType<Take>("Take");
+>>>>>>> Stashed changes
     factory.registerNodeType<Place>("Place");
 
     std::string xml_models = BT::writeTreeNodesModelXML(factory); 
