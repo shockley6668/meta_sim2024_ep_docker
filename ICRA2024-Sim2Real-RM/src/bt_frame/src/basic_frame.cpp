@@ -45,26 +45,8 @@ public:
 static const char* xml_text = R"(
 <root BTCPP_format="4">
     <BehaviorTree ID="MainTree" _fullpath="">
-        <Sequence name="Sequence">
-            <Sequence name="goto_watch_board">
-                <Sequence name="aim_to_board">
-                    <Goal name="board"/>
-                    <SimplePlanner name="moveto_board"/>
-                </Sequence>
-                <Observe name="search_need_block"/>
-            </Sequence>
-            <Sequence name="find_there_and_back">
-                <Sequence name="block_place">
-                    <Goal name="next_block"/>
-                    <SimplePlanner name="moveto_block"/>
-                </Sequence>
-                <Take name="take_block"/>
-                <Sequence name="aim_to_board">
-                    <Goal name="board"/>
-                    <SimplePlanner name="moveto_board"/>
-                </Sequence>
-                <Place name="place_block"/>
-            </Sequence>
+        <Sequence>
+            <Take name="take_block"/>
             <Stop name="stop"/>
         </Sequence>
     </BehaviorTree>
@@ -145,8 +127,8 @@ int main(int argc, char **argv)
     {
         std::cout << "Start" << std::endl;
         tree.tickOnce();
-        // this_thread::sleep_for(std::chrono::milliseconds(2000));
         loop_rate.sleep();
+        ros::spinOnce();
     }
     return 0;
 }
