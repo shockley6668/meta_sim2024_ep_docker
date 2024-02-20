@@ -85,19 +85,26 @@ void PositionToJson(nlohmann::json& j, const Position2D& p)
   j["y"] = p.y;
 }
 
-int main()
+template <class T> static void RosBuilder(BehaviorTreeFactory& factory, const std::string& ID, ros::NodeHandle& nh)
 {
+    NodeBuilder builder = [&nh](const std::string& name, const NodeConfiguration& config) {
+        return std::make_unique<T>(nh, name, config);
+    };
+    TreeNodeManifest manifest;
+    manifest.type = getType<T>();
+    manifest.ports = T::providedPorts();
+    manifest.registration_ID = ID;
+    factory.registerBuilder(manifest, builder);
+}
+
+int main(int argc, char **argv)
+{
+    ros::init(argc, argv, "bt_node");
+    ros::NodeHandle nh;
     BehaviorTreeFactory factory;
 
-<<<<<<< Updated upstream
-    factory.registerNodeType<Stop>("Stop");
-    factory.registerNodeType<Goal>("Goal");
-    factory.registerNodeType<SimplePlanner>("SimplePlanner");
-    factory.registerNodeType<Observe>("Observe");
-    factory.registerNodeType<Take>("Take");
-=======
     
-    RosBuilder<GotoWatchBoard>(factory, "GotoWatchBoard", nh);
+    // RosBuilder<GotoWatchBoard>(factory, "GotoWatchBoard", nh);
     RosBuilder<Take>(factory, "Take", nh);
     factory.registerNodeType<Stop>("Stop");
     factory.registerNodeType<Goal>("Goal");
@@ -106,7 +113,6 @@ int main()
     // factory.registerNodeType<GotoWatchBoard>("GotoWatchBoard");
     
     // factory.registerNodeType<Take>("Take");
->>>>>>> Stashed changes
     factory.registerNodeType<Place>("Place");
 
     std::string xml_models = BT::writeTreeNodesModelXML(factory); 
@@ -132,11 +138,15 @@ int main()
     bool append_to_database = true;
     BT::SqliteLogger sqlite_logger(tree, "t12_sqlitelog.db3", append_to_database);
 
-    while(1)
+    BT::NodeStatus status = BT::NodeStatus::IDLE;
+    ros::Rate loop_rate(10);
+
+    while(ros::ok() && (status == NodeStatus::IDLE || status == NodeStatus::RUNNING))
     {
         std::cout << "Start" << std::endl;
-        tree.tickWhileRunning();
-        this_thread::sleep_for(std::chrono::milliseconds(2000));
+        tree.tickOnce();
+        // this_thread::sleep_for(std::chrono::milliseconds(2000));
+        loop_rate.sleep();
     }
     return 0;
 }
