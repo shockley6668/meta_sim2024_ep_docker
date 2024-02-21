@@ -7,25 +7,57 @@
 #include <ros/ros.h>
 #include <bt_action_node.h>
 #include <bt_service_node.h>
-
+#include <check_done.h>
 using namespace BT;
 using namespace std;
 namespace chr = std::chrono;
 
-class Stop:public SyncActionNode
+class Stop:public StatefulActionNode
 {
 public:
-    Stop(const std::string& name, const NodeConfig& config):SyncActionNode(name, config){}
+    Stop(const std::string& name, const NodeConfig& config):StatefulActionNode(name, config){}
     static PortsList providedPorts()
     {
-        return {};
-    }
-    NodeStatus tick() override
-    {
-        cout << "------     Robot stopping      ------\n";
+        return {
+            InputPort<int>("target_cube_num1"),
+            InputPort<int>("target_cube_num2"),
+            InputPort<int>("target_cube_num3")
 
-        cout << "------     Robot stopped       ------\n";
-        return NodeStatus::SUCCESS;
+        };
+    }
+    NodeStatus onStart() override
+    {
+        return BT::NodeStatus::RUNNING;
+    }
+    NodeStatus onRunning() override
+    {
+        auto res1=getInput<int>("target_cube_num1");
+        if( !res1 )
+        {
+            throw RuntimeError("error reading port [target]:", res1.error());
+        }
+        cout<<res1.value();
+        auto res2=getInput<int>("target_cube_num2");
+        if( !res2 )
+        {
+            throw RuntimeError("error reading port [target]:", res2.error());
+        }
+        cout<<res2.value();
+        auto res3=getInput<int>("target_cube_num3");
+        if( !res3 )
+        {
+            throw RuntimeError("error reading port [target]:", res3.error());
+        }
+        cout<<res3.value();
+        
+        cout<<endl;
+        std::cout << "Stop running" << std::endl;
+        return BT::NodeStatus::RUNNING;
+    }
+    void onHalted() override
+    {
+      // nothing to do here...
+      std::cout << "Stop interrupted" << std::endl;
     }
 };
 
@@ -46,29 +78,57 @@ public:
     }
 };
 
+// static const char* xml_text = R"(
+// <root BTCPP_format="4">
+//     <BehaviorTree ID="MainTree" _fullpath="">
+//         <Sequence name="Sequence">
+//             <GotoWatchBoard name="goto_watch_board"/>
+//             <Sequence name="find_there_and_back">
+//                 <Sequence name="block_place">
+//                     <SimplePlanner name="moveto_block"/>
+//                 </Sequence>
+//                 <Take name="take_block"/>
+//                 <Sequence name="aim_to_board">
+//                     <SimplePlanner name="moveto_board"/>
+//                 </Sequence>
+//                 <Place name="place_block"/>
+//             </Sequence>
+//             <Stop name="stop"/>
+//         </Sequence>
+//     </BehaviorTree>
+// </root>
+// )";
+
+// static const char* xml_text = R"(
+// <root BTCPP_format="4">
+//     <BehaviorTree ID="MainTree" _fullpath="">
+//         <Sequence name="Sequence">
+//             <GotoWatchBoard name="goto_watch_board" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}"/>
+//             <RetryUntilSuccessful num_attempts="100">
+//                 <Sequence>
+//                     <SimplePlanner name="simple_planner"/>
+//                     <Take name="take" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}" takeing_cube_num="{takeing_cube_num}"/>
+//                     <CheckDone name="check_done"/>
+//                 </Sequence>
+//             </RetryUntilSuccessful>
+//             <Stop name="stop" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}"/>
+            
+//         </Sequence>
+//     </BehaviorTree>
+// </root>
+// )";
+
 static const char* xml_text = R"(
 <root BTCPP_format="4">
     <BehaviorTree ID="MainTree" _fullpath="">
         <Sequence name="Sequence">
-            <GotoWatchBoard name="goto_watch_board"/>
-            <Sequence name="find_there_and_back">
-                <Sequence name="block_place">
-                    <Goal name="next_block"/>
-                    <SimplePlanner name="moveto_block"/>
-                </Sequence>
-                <Take name="take_block"/>
-                <Sequence name="aim_to_board">
-                    <Goal name="board"/>
-                    <SimplePlanner name="moveto_board"/>
-                </Sequence>
-                <Place name="place_block"/>
-            </Sequence>
-            <Stop name="stop"/>
+            <Take name="take" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}" takeing_cube_num="{takeing_cube_num}"/>
+            <Stop name="stop" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}"/>
+            
         </Sequence>
     </BehaviorTree>
 </root>
 )";
-
 // A custom structuree that I want to visualize in Groot2
 struct Position2D {
   double x;
@@ -113,14 +173,17 @@ int main(int argc, char **argv)
 
     
     RosBuilder<GotoWatchBoard>(factory, "GotoWatchBoard", nh);
+    RosBuilder<SimplePlanner>(factory,"SimplePlanner",nh);
+    RosBuilder<Take>(factory,"Take",nh);
     factory.registerNodeType<Stop>("Stop");
-    factory.registerNodeType<Goal>("Goal");
-    factory.registerNodeType<SimplePlanner>("SimplePlanner");
+    factory.registerNodeType<Check_done>("CheckDone");
+    //factory.registerNodeType<Goal>("Goal");
+    // factory.registerNodeType<SimplePlanner>("SimplePlanner");
     //factory.registerNodeType<Observe>("Observe");
     // factory.registerNodeType<GotoWatchBoard>("GotoWatchBoard");
     
-    factory.registerNodeType<Take>("Take");
-    factory.registerNodeType<Place>("Place");
+    //factory.registerNodeType<Take>("Take");
+    //factory.registerNodeType<Place>("Place");
 
     std::string xml_models = BT::writeTreeNodesModelXML(factory); 
 
@@ -149,7 +212,7 @@ int main(int argc, char **argv)
     while( ros::ok() && (status == NodeStatus::IDLE || status == NodeStatus::RUNNING))
     {
         ros::spinOnce();
-        std::cout << "Start" << std::endl;
+        //std::cout << "Start" << std::endl;
         tree.tickOnce();
         //tree.sleep(std::chrono::milliseconds(100));
         loop_rate.sleep();

@@ -13,44 +13,18 @@ typedef struct{
     float x;
     float y;
 }Point2D;
-
-// Template specialization to converts a string to Position2D.
-namespace BT
-{
-    template <> inline vector<int> convertFromString(StringView str)
-    {
-        // We expect real numbers separated by semicolons
-        auto parts = splitString(str, ';');
-        if (parts.size()==0)
-        {
-            throw RuntimeError("invalid input)");
-        }
-        else
-        {
-            vector<int> output;
-            // output.x     = convertFromString<double>(parts[0]);
-            // output.y     = convertFromString<double>(parts[1]);
-
-            for(int i=0;i<parts.size();i++)
-            {
-                output.push_back(convertFromString<int>(parts[i]));
-            }
-            return output;
-        }
-    }
-} // end namespace BT
-
-class GotoWatchBoard : public StatefulActionNode
+using namespace std;
+class GotoPlaceBlock : public StatefulActionNode
 {
 public:
-    GotoWatchBoard(ros::NodeHandle& Handle,const std::string& name, const BT::NodeConfiguration& config)
+    GotoPlaceBlock(ros::NodeHandle& Handle,const std::string& name, const BT::NodeConfiguration& config)
         : StatefulActionNode(name, config), node_(Handle)
     {
         // Initialize the action client
         action_client_ = std::make_shared<actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>>("move_base", true);
         goal_pub_ = node_.advertise<geometry_msgs::PointStamped>("/clicked_point", 6);
-        goal_status_sub_ = node_.subscribe("/cmd_vel", 2, &GotoWatchBoard::goalStatusCallback, this);
-        
+        goal_status_sub_ = node_.subscribe("/cmd_vel", 2, &GotoPlaceBlock::goalStatusCallback, this);
+        tag_sub=node_.subscribe("/tag_detections", 1, &GotoPlaceBlock::tagCallback,this);
         reached_flag = false;
    
         path_list={{0.226,0},{0.4,0},{0.4,0.8},{0.3,1.25},{0,1.5}};
@@ -104,7 +78,7 @@ public:
     {
         // Get the goal pose from the input port
         //const geometry_msgs::PoseStamped& goal = getInput<geometry_msgs::PoseStamped>("goal");
-        tag_sub=node_.subscribe("/tag_detections", 1, &GotoWatchBoard::tagCallback,this);
+
         // Create the goal message for the action
         ROS_INFO("Sending goal");
         ros::Duration(0.5).sleep();
@@ -132,7 +106,7 @@ public:
             setOutput<int>("target_cube_num1",target_cube_num[0]);
             setOutput<int>("target_cube_num2",target_cube_num[1]);
             setOutput<int>("target_cube_num3",target_cube_num[2]);
-            tag_sub.shutdown();
+            
             return BT::NodeStatus::SUCCESS;
         }
         
@@ -141,7 +115,6 @@ public:
     void onHalted() override
     {
       // nothing to do here...
-      tag_sub.shutdown();
       std::cout << "goto_watchboard interrupted" << std::endl;
     }
 
@@ -181,7 +154,6 @@ private:
     ros::Publisher goal_pub_;
     ros::Subscriber goal_status_sub_;
     ros::Subscriber tag_sub;
-    
     bool reached_flag=false;
     vector<int> target_cube_num;
     std::vector<Point2D> path_list;

@@ -58,7 +58,7 @@ namespace robomaster{
         PIDController controller_x;
         PIDController controller_y;
         PIDController controller_w;
-        LocalPlanner(ros::NodeHandle& given_nh):nh(given_nh),plan_(false), prune_index_(0),target_yaw(0),controller_x(7,0.01,0.1),controller_y(7,0.01,0.1),controller_w(2.5,0.01,0.2){
+        LocalPlanner(ros::NodeHandle& given_nh):nh(given_nh),plan_(false), prune_index_(0),target_yaw(0),controller_x(7,0.01,0.1),controller_y(7,0.01,0.1),controller_w(2.5,0.0,0){
 
            
             nh.param<double>("max_speed", max_speed_, 2.0);
@@ -130,8 +130,9 @@ namespace robomaster{
                 GetGlobalRobotPose(tf_listener_, global_path_.header.frame_id, robot_pose);
 
                 // 3. Check if robot has already arrived with given distance tolerance
+                
                 if (GetEuclideanDistance(robot_pose,global_path_.poses.back())<= goal_tolerance_
-                    && prune_index_ == global_path_.poses.size() - 1&&abs(diff_yaw)<=0.02){
+                    && prune_index_ == global_path_.poses.size() - 1){
                     plan_ = false;
                     geometry_msgs::Twist cmd_vel;
                     cmd_vel.linear.x = 0;
@@ -258,6 +259,10 @@ namespace robomaster{
             cmd_vel.linear.x=-controller_x.calculate(0,diff_x);
             cmd_vel.linear.y=-controller_y.calculate(0,diff_y);
             cmd_vel.angular.z=-controller_w.calculate(0,diff_yaw);
+            if(abs(diff_yaw)<0.1)
+            {
+                cmd_vel.angular.z=0;        
+            }
             //std::cout<<"diff_yaw:"<<diff_yaw<<std::endl;
             //速度限幅
             velocitylimit(cmd_vel.linear.x,3);

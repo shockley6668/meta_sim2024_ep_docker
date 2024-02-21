@@ -24,9 +24,11 @@
 
 #include <Eigen/Eigen>
 #include <chrono>
-
+#include <ros/ros.h>
 #include "utility.h"
-
+// #include "simple_planner/change_point_numResponse.h"
+// #include "simple_planner/change_point_numRequest.h"
+#include "simple_planner/change_point_num.h"
 namespace robomaster{
 class GlobalPlanner{
  public:
@@ -41,19 +43,22 @@ class GlobalPlanner{
     // -------------------visulize endpoints and trajectory---------------------
     tf_listener_ = std::make_shared<tf::TransformListener>();
 
-    setpoint_pub_ = nh.advertise<visualization_msgs::Marker>("set_point", 10);
-    global_path_pub_ = nh.advertise<nav_msgs::Path>("path", 10);
+      setpoint_pub_ = nh.advertise<visualization_msgs::Marker>("set_point", 10);
+      global_path_pub_ = nh.advertise<nav_msgs::Path>("path", 10);
+      point_num_server_ = nh.advertiseService("/change_point_num",&GlobalPlanner::ChangePointNum,this);
+      // 2D Nav Goal to set point
+      waypoint_sub_ = nh.subscribe("/clicked_point", 5, &GlobalPlanner::WaypointCallback,this);
+      record_sub_ = nh.subscribe("/initialpose",1, &GlobalPlanner::RecordCallback,this);
 
-    // 2D Nav Goal to set point
-    waypoint_sub_ = nh.subscribe("/clicked_point", 5, &GlobalPlanner::WaypointCallback,this);
-    record_sub_ = nh.subscribe("/initialpose",1, &GlobalPlanner::RecordCallback,this);
+      
 
-//    plan_timer_ = nh.createTimer(ros::Duration(1.0/plan_freq_),&GlobalPlanner::Plan,this);
+    //    plan_timer_ = nh.createTimer(ros::Duration(1.0/plan_freq_),&GlobalPlanner::Plan,this);
 
-    record_timer_ = nh.createTimer(ros::Duration(0.02),&GlobalPlanner::Record,this);
-    record_timer_.stop();
+      record_timer_ = nh.createTimer(ros::Duration(0.02),&GlobalPlanner::Record,this);
+      
+      record_timer_.stop();
 
-    path_.header.frame_id = global_frame_;
+      path_.header.frame_id = global_frame_;
 
 
   }
@@ -64,7 +69,14 @@ class GlobalPlanner{
 //  void Plan(const ros::TimerEvent& event){
 //  global_path_pub_.publish(path_);
 //  }
-
+  bool ChangePointNum(simple_planner::change_point_num::Request &req,
+                      simple_planner::change_point_num::Response &res){
+    std::cout<<req.point_num<<std::endl;
+    point_num_ = req.point_num;
+    res.state = true;
+    std::cout<<point_num_<<std::endl;
+    return true;
+  }
   void Record(const ros::TimerEvent& event){
 
     geometry_msgs::PoseStamped tmp_pose;
@@ -180,6 +192,8 @@ class GlobalPlanner{
 
   ros::Subscriber waypoint_sub_;
   ros::Subscriber record_sub_;
+
+  ros::ServiceServer point_num_server_;
 
   ros::Timer record_timer_;
 

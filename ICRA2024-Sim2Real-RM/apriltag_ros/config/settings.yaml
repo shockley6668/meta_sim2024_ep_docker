@@ -11,7 +11,7 @@ max_hamming_dist:  2.2          # default: 2 (Tunable parameter with 2 being a g
 tag_refine_decode: 0          # default: 0
 tag_refine_pose:   0
 # Other parameters
-publish_tf:        true       # default: false
+publish_tf:        false       # default: false
 transport_hint:    "raw"      # default: raw, see http://wiki.ros.org/
 
 #remove_duplicates parameter not provided. Defaulting to true

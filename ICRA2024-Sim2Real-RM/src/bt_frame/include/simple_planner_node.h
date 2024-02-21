@@ -1,24 +1,139 @@
 #pragma once
-
+#include <ros/ros.h>
+#include "bt_frame/ep_goal.h"
 #include "behaviortree_cpp/bt_factory.h"
+#include "std_msgs/Int32.h"
+
 using namespace BT;
-class SimplePlanner:public SyncActionNode
+class SimplePlanner:public StatefulActionNode
 {
 public:
-    SimplePlanner(const std::string& name, const NodeConfig& config):SyncActionNode(name, config){}
+    SimplePlanner(ros::NodeHandle& Handle,const std::string& name, const NodeConfig& config):
+    StatefulActionNode(name, config),node_(Handle){
+        goal_sub_=node_.subscribe("/ep_next_goal", 1, &SimplePlanner::goalCallback,this);
+        goal_status_pubs_=node_.advertise<std_msgs::Int32>("ep_goal_status", 1);
+        goal_status_sub_ = node_.subscribe("/cmd_vel", 2, &SimplePlanner::goalStatusCallback, this);
+        goal_pub_ = node_.advertise<geometry_msgs::PointStamped>("/clicked_point", 6);
+        goal_received=false;
+        goal_reached=false;
+        move_base_send=false;
+        action_client_ = std::make_shared<actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>>("move_base", true);
+    }
     static PortsList providedPorts()
     {
-        return {InputPort<std::string>("goal")};
+        return {};
     }
-    NodeStatus checkBlock()
+    NodeStatus onStart() override
     {
-        
+        goal_received=false;
+        goal_reached=false;
+        move_base_send=false;
+        return BT::NodeStatus::RUNNING;
     }
-    NodeStatus tick() override
+
+    NodeStatus onRunning() override
     {
+        if(goal_received)
+        {
+            //movebase
+            if(goal_.type==0)
+            {
+                if(move_base_send==false)
+                {
+                    move_base_msgs::MoveBaseGoal goal_msg;
+                    goal_msg.target_pose.header.frame_id = "map";
+                    goal_msg.target_pose.header.stamp = ros::Time::now();
+                    goal_msg.target_pose.pose.position.x = goal_.x;
+                    goal_msg.target_pose.pose.position.y = goal_.y;
+                    tf::Quaternion q=tf::createQuaternionFromYaw(goal_.yaw);
+                    goal_msg.target_pose.pose.orientation.w = q.w();
+                    goal_msg.target_pose.pose.orientation.x = q.x();
+                    goal_msg.target_pose.pose.orientation.y = q.y();
+                    goal_msg.target_pose.pose.orientation.z = q.z();
+                    action_client_->sendGoal(goal_msg);
+                    move_base_send=true;
+                }
+                else{
+                    std::cout<<action_client_->getState().toString()<<std::endl;
+                    if (action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+                    {
+                        
+                        goal_reached=true;
+                    }
+                }
+                
+
+            }
+            //simple_planner
+            else
+            {
+                if(move_base_send==false)
+                {
+                    ROS_INFO("SimplePlanner: send goal");
+                    ros::Duration(0.5).sleep();
+                    for(int i=0;i<goal_.points.size();i++)
+                    {
+                        geometry_msgs::PointStamped p;
+                        p.header.frame_id = "map";
+                        p.header.stamp = ros::Time::now();
+                        p.header.seq = i;
+                        p.point.x = goal_.points[i].point.x;
+                        p.point.y = goal_.points[i].point.y;
+                        goal_pub_.publish(p);
+                        ros::Duration(0.05).sleep();
+                    }
+                    move_base_send=true;
+                }
+            }
+        }
         
-        return NodeStatus::SUCCESS;
+        if(goal_reached)
+        {
+            goal_reached=false;
+            std_msgs::Int32 msg;
+            msg.data=1;
+            for(int i=0;i<10;i++)
+            {
+                goal_status_pubs_.publish(msg);
+            }
+            
+            return BT::NodeStatus::SUCCESS;
+        }
+        
+        return BT::NodeStatus::RUNNING;
+    }
+    void onHalted() override
+    {
+      // nothing to do here...
+      std::cout << "SimplePlanner interrupted" << std::endl;
     }
 private:
+    void goalCallback(const bt_frame::ep_goal::ConstPtr& msg)
+    {
+        goal_=*msg;
+        goal_received=true;
+    }
+
+    void goalStatusCallback(const geometry_msgs::Twist& msg)
+    {
+        
+        if (goal_reached==false&&msg.linear.z == 1)
+        {
+            ROS_INFO("Goal reached");
+            goal_reached=true;
+        }
+    }
+    ros::NodeHandle node_;
+    std::shared_ptr<actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>> action_client_;
+    ros::Subscriber goal_sub_;
+    ros::Publisher goal_pub_;
+    ros::Subscriber goal_status_sub_;
+    ros::Publisher goal_status_pubs_;
+
+    bool goal_received=false;
+    bool goal_reached=false;
+
+    bool move_base_send=false;
+    bt_frame::ep_goal goal_;
     //current goal
 };

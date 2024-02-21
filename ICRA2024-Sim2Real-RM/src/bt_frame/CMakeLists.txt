@@ -19,6 +19,8 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_geometry_msgs
   tf2_ros
   behaviortree_cpp
+  apriltag_ros
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -55,11 +57,10 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  ep_goal.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -76,10 +77,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   geometre_msgs#   std_msgs#   tf2_geometry_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs   geometry_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -114,6 +115,7 @@ catkin_package(
  INCLUDE_DIRS include
  LIBRARIES bt_frame
  CATKIN_DEPENDS geometry_msgs move_base roscpp rospy std_msgs tf2 tf2_geometry_msgs tf2_ros
+ message_runtime 
 
 )
 
@@ -144,9 +146,18 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(basic_frame 
         src/basic_frame.cpp
+        
 )
 add_dependencies(basic_frame ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(basic_frame ${catkin_LIBRARIES} )
+
+
+add_executable(goal_decition 
+        src/goal_decition.cpp
+        
+)
+add_dependencies(goal_decition ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(goal_decition ${catkin_LIBRARIES} )
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use

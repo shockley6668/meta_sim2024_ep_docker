@@ -14,8 +14,20 @@ find_package(catkin REQUIRED COMPONENTS
     nav_msgs
     geometry_msgs
     visualization_msgs
+    
+    message_generation
 )
-catkin_package()
+add_service_files(
+  FILES
+  change_point_num.srv
+)
+
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs   geometry_msgs
+)
+catkin_package(CATKIN_DEPENDS  message_runtime)
 
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR})
