@@ -9,6 +9,8 @@
 #include <bt_service_node.h>
 #include <check_done.h>
 #include "place_node.h"
+#include "take_up_node.h"
+#include "place_down_node.h"
 using namespace BT;
 using namespace std;
 namespace chr = std::chrono;
@@ -97,6 +99,14 @@ static const char* xml_text = R"(
                     <CheckDone name="check_done"/>
                 </Sequence>
             </RetryUntilSuccessful>
+            <RetryUntilSuccessful num_attempts="100">
+                <Sequence>
+                    <SimplePlanner name="simple_planner"/>
+                    <Take_Up name="take up"/>
+                    <Place_Down name="Place down"/>
+                    <CheckDone name="check_done"/>
+                </Sequence>
+            </RetryUntilSuccessful>
             <Stop name="stop" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}"/>
             
         </Sequence>
@@ -161,7 +171,9 @@ int main(int argc, char **argv)
     RosBuilder<GotoWatchBoard>(factory, "GotoWatchBoard", nh);
     RosBuilder<SimplePlanner>(factory,"SimplePlanner",nh);
     RosBuilder<Take>(factory,"Take",nh);
+    RosBuilder<Take_Up>(factory, "Take_Up",nh);
     RosBuilder<Place>(factory,"Place",nh);
+    RosBuilder<Place_Down>(factory,"Place_Down",nh);
     factory.registerNodeType<Stop>("Stop");
     factory.registerNodeType<Check_done>("CheckDone");
     //factory.registerNodeType<Goal>("Goal");
