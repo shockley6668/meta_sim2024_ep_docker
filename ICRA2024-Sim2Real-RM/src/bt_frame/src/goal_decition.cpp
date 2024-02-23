@@ -152,7 +152,7 @@ int main(int argc, char** argv) {
     loop_rate.sleep();
     while (ros::ok())
     {
-        std::cout<<state<<std::endl;
+        // std::cout<<state<<std::endl;
         if(find_three_state==false)
         {
             if(target_cube_num.size()==3)
