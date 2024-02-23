@@ -1,220 +1,308 @@
-#include "basic_frame.h"
-#include "simple_planner_node.h"
-#include "goal_node.h"
-#include "observe_node.h"
-#include "take_node.h"
-#include "goto_watch_board.h"
-#include <ros/ros.h>
-#include <bt_action_node.h>
-#include <bt_service_node.h>
-#include <check_done.h>
-#include "place_node.h"
-#include "take_up_node.h"
-#include "place_down_node.h"
-using namespace BT;
+#include "std_msgs/Int32.h"
+#include "ros/ros.h"
+#include "bt_frame/ep_goal.h"
+#include <queue>
+#include <vector>
+#include <cstdlib>
+#include <climits>
+#include "simple_planner/change_point_num.h"
+#include "apriltag_ros/AprilTagDetectionArray.h"
+#include "std_msgs/Int32MultiArray.h"
 using namespace std;
-namespace chr = std::chrono;
 
-class Stop:public StatefulActionNode
-{
-public:
-    Stop(const std::string& name, const NodeConfig& config):StatefulActionNode(name, config){}
-    static PortsList providedPorts()
-    {
-        return {
-            InputPort<int>("target_cube_num1"),
-            InputPort<int>("target_cube_num2"),
-            InputPort<int>("target_cube_num3")
+bool goal_reached=false;
 
-        };
-    }
-    NodeStatus onStart() override
-    {
-        return BT::NodeStatus::RUNNING;
-    }
-    NodeStatus onRunning() override
-    {
-        auto res1=getInput<int>("target_cube_num1");
-        if( !res1 )
-        {
-            throw RuntimeError("error reading port [target]:", res1.error());
-        }
-        cout<<res1.value();
-        auto res2=getInput<int>("target_cube_num2");
-        if( !res2 )
-        {
-            throw RuntimeError("error reading port [target]:", res2.error());
-        }
-        cout<<res2.value();
-        auto res3=getInput<int>("target_cube_num3");
-        if( !res3 )
-        {
-            throw RuntimeError("error reading port [target]:", res3.error());
-        }
-        cout<<res3.value();
-        
-        cout<<endl;
-        std::cout << "Stop running" << std::endl;
-        return BT::NodeStatus::RUNNING;
-    }
-    void onHalted() override
-    {
-      // nothing to do here...
-      std::cout << "Stop interrupted" << std::endl;
-    }
-};
-
-
-// static const char* xml_text = R"(
-// <root BTCPP_format="4">
-//     <BehaviorTree ID="MainTree" _fullpath="">
-//         <Sequence name="Sequence">
-//             <GotoWatchBoard name="goto_watch_board"/>
-//             <Sequence name="find_there_and_back">
-//                 <Sequence name="block_place">
-//                     <SimplePlanner name="moveto_block"/>
-//                 </Sequence>
-//                 <Take name="take_block"/>
-//                 <Sequence name="aim_to_board">
-//                     <SimplePlanner name="moveto_board"/>
-//                 </Sequence>
-//                 <Place name="place_block"/>
-//             </Sequence>
-//             <Stop name="stop"/>
-//         </Sequence>
-//     </BehaviorTree>
-// </root>
-// )";
-
-static const char* xml_text = R"(
-<root BTCPP_format="4">
-    <BehaviorTree ID="MainTree" _fullpath="">
-        <Sequence name="Sequence">
-            <GotoWatchBoard name="goto_watch_board" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}"/>
-            <RetryUntilSuccessful num_attempts="100">
-                <Sequence>
-                    <SimplePlanner name="simple_planner"/>
-                    <Take name="take" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}" takeing_cube_num="{takeing_cube_num}"/>
-                    <Place name="place" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}" takeing_cube_num="{takeing_cube_num}"/>
-                    <CheckDone name="check_done"/>
-                </Sequence>
-            </RetryUntilSuccessful>
-            <RetryUntilSuccessful num_attempts="100">
-                <Sequence>
-                    <SimplePlanner name="simple_planner"/>
-                    <Take_Up name="take up"/>
-                    <Place_Down name="Place down"/>
-                    <CheckDone name="check_done"/>
-                </Sequence>
-            </RetryUntilSuccessful>
-            <Stop name="stop" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}"/>
-            
-        </Sequence>
-    </BehaviorTree>
-</root>
-)";
-
-// static const char* xml_text = R"(
-// <root BTCPP_format="4">
-//     <BehaviorTree ID="MainTree" _fullpath="">
-//         <Sequence name="Sequence">
-//             <Take name="take" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}" takeing_cube_num="{takeing_cube_num}"/>
-//             <Place name="place" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}" takeing_cube_num="{takeing_cube_num}"/>
-//             <Stop name="stop" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}"/>
-//         </Sequence>
-//     </BehaviorTree>
-// </root>
-// )";
-// A custom structuree that I want to visualize in Groot2
-struct Position2D {
-  double x;
-  double y;
-};
-
-// Allows Position2D to be visualized in Groot2
-// You still need BT::RegisterJsonDefinition<Position2D>(PositionToJson)
-void PositionToJson(nlohmann::json& j, const Position2D& p)
-{
-  j["x"] = p.x;
-  j["y"] = p.y;
-}
-
-
-template <class T> static void RosBuilder(BehaviorTreeFactory& factory, const std::string& ID, ros::NodeHandle& nh)
-{
-    NodeBuilder builder = [&nh](const std::string& name, const NodeConfiguration& config) {
-        return std::make_unique<T>(nh, name, config);
+int state;
+bool send_flag=false;
+vector <int> place1;
+vector <int> place2;
+vector <int> place3;
+bool no_move=false;
+bool find_three_state=true;
+vector <int> target_cube_num;
+apriltag_ros::AprilTagDetectionArray tag_msg;
+vector<vector<int>> grid = {
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 1, 1, 0, 0, 1},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {0, 1, 1, 0, 1, 1, 0, 0, 0, 1},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {0, 0, 0, 0, 0, 0, 0, 0, 1, 1},
     };
-    TreeNodeManifest manifest;
-    manifest.type = getType<T>();
-    manifest.ports = T::providedPorts();
-    manifest.registration_ID = ID;
-    factory.registerBuilder(manifest, builder);
+struct Node {
+    int x, y, dist;
+    vector<pair<int, int>> path;
+    Node(int x, int y, int dist = 0, vector<pair<int, int>> path = {}): x(x), y(y), dist(dist), path(path) {}
+    bool operator<(const Node& that) const {
+        return dist > that.dist;
+    }
+};
+const int dx[] = {-1, 1, 0, 0, -1, -1, 1, 1};
+const int dy[] = {0, 0, -1, 1, -1, 1, -1, 1};
+
+vector<pair<int, int>> dijkstra(vector<vector<int>>& grid, Node start, Node end) {
+    int m = grid.size(), n = grid[0].size();
+    vector<vector<int>> dist(m, vector<int>(n, INT_MAX));
+    priority_queue<Node> pq;
+
+    start.path.push_back({start.x, start.y});
+
+    dist[start.x][start.y] = 0;
+    pq.push(start);
+
+    while (!pq.empty()) {
+        Node node = pq.top(); pq.pop();
+        if (node.x == end.x && node.y == end.y) return node.path;
+        for (int i = 0; i < 8; ++i) {
+            int x = node.x + dx[i], y = node.y + dy[i];
+            if (x < 0 || x >= m || y < 0 || y >= n || grid[x][y] == 1) continue;
+            int d = node.dist + (i < 4 ? 1 : sqrt(2)); // 斜着走的距离为sqrt(2)
+            if (d < dist[x][y]) {
+                dist[x][y] = d;
+                vector<pair<int, int>> newPath = node.path;
+                newPath.push_back({x, y});
+                pq.push(Node(x, y, d, newPath));
+            }
+        }
+    }
+
+    return {};
 }
 
-/**
- * @brief The entry point of the program.
- * 
- * This function initializes the BehaviorTreeFactory, registers node types,
- * creates a behavior tree, and starts the main loop that ticks the tree.
- * 
- * @return int The exit status of the program.
- */
-int main(int argc, char **argv)
+void goal_status_callback(const std_msgs::Int32::ConstPtr &msg)
 {
-    ros::init(argc, argv, "bt_node");
-    ros::NodeHandle nh;
-
-    BehaviorTreeFactory factory;
-
-    
-    RosBuilder<GotoWatchBoard>(factory, "GotoWatchBoard", nh);
-    RosBuilder<SimplePlanner>(factory,"SimplePlanner",nh);
-    RosBuilder<Take>(factory,"Take",nh);
-    RosBuilder<Take_Up>(factory, "Take_Up",nh);
-    RosBuilder<Place>(factory,"Place",nh);
-    RosBuilder<Place_Down>(factory,"Place_Down",nh);
-    factory.registerNodeType<Stop>("Stop");
-    factory.registerNodeType<Check_done>("CheckDone");
-    //factory.registerNodeType<Goal>("Goal");
-    // factory.registerNodeType<SimplePlanner>("SimplePlanner");
-    //factory.registerNodeType<Observe>("Observe");
-    // factory.registerNodeType<GotoWatchBoard>("GotoWatchBoard");
-    
-    //factory.registerNodeType<Take>("Take");
-    //factory.registerNodeType<Place>("Place");
-
-    std::string xml_models = BT::writeTreeNodesModelXML(factory); 
-
-    factory.registerBehaviorTreeFromText(xml_text);
-
-    BT::RegisterJsonDefinition<Position2D>(PositionToJson);
-    auto tree = factory.createTree("MainTree");
-
-    cout << "----------- XML file  ----------\n"
-        << BT::WriteTreeToXML(tree, false, false)
-        << "--------------------------------\n";
-
-    const unsigned port = 1667;
-    Groot2Publisher publisher(tree, port);
-
-    // Add two more loggers, to save the transitions into a file.
-    // Both formats are compatible with Groot2
-
-    // Lightweight serialization
-    BT::FileLogger2 logger2(tree, "t12_logger2.btlog");
-    // SQLite logger can save multiple sessions into the same database
-    bool append_to_database = true;
-    BT::SqliteLogger sqlite_logger(tree, "t12_sqlitelog.db3", append_to_database);
-    NodeStatus status = NodeStatus::IDLE;
-    ros::Rate loop_rate(10); // 10 Hz
-    while( ros::ok() && (status == NodeStatus::IDLE || status == NodeStatus::RUNNING))
+    if(msg->data==1)
     {
-        ros::spinOnce();
-        //std::cout << "Start" << std::endl;
-        tree.tickOnce();
-        //tree.sleep(std::chrono::milliseconds(100));
-        loop_rate.sleep();
+        goal_reached=true;
     }
+} 
+void tagCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr & msg)
+{
+    tag_msg=*msg;
+}
+void no_move_callback(const std_msgs::Int32::ConstPtr &msg)
+{
+    if(msg->data==1)
+    {
+        if(tag_msg.detections.size()>0)
+        {
+            switch (state)
+            {
+            case 1:
+                for(int i=0;i<tag_msg.detections.size();i++)
+                {
+                    if (std::find(place1.begin(), place1.end(), tag_msg.detections[i].id[0]) == place1.end()) {
+                        place1.push_back(tag_msg.detections[i].id[0]);  
+                    }
+                }
+                break;
+            case 2:
+                for(int i=0;i<tag_msg.detections.size();i++)
+                {
+                    if (std::find(place2.begin(), place2.end(), tag_msg.detections[i].id[0]) == place2.end()) {
+                        place2.push_back(tag_msg.detections[i].id[0]);  
+                    }
+                }
+                break;
+            case 3:
+                for(int i=0;i<tag_msg.detections.size();i++)
+                {
+                    if (std::find(place3.begin(), place3.end(), tag_msg.detections[i].id[0]) == place3.end()) {
+                        place3.push_back(tag_msg.detections[i].id[0]);  
+                    }
+                }
+                break;
+            default:
+                break;
+            }
+        }
+    }
+}
+void target_num_callback(const std_msgs::Int32MultiArray::ConstPtr &msg)
+{
+    if(msg->data.size()==3)
+    {
+        target_cube_num=msg->data;
+    }
+}
+template <typename T>
+void printVector(const vector<T> v)
+{
+    for (int i = 0; i < v.size(); i++)
+    {
+        cout << v[i] << " ";
+    }
+    cout << endl;
+}
+
+int main(int argc, char** argv) {
+    ros::init(argc, argv, "goal_decition_node");
+    ros::NodeHandle nh;
+    
+    ros::Publisher goal_pub = nh.advertise<bt_frame::ep_goal>("ep_next_goal", 10);
+    ros::Subscriber goal_status_sub=nh.subscribe<std_msgs::Int32>("ep_goal_status",10,goal_status_callback);
+    ros::Rate loop_rate(100);
+    ros::ServiceClient change_point_client = nh.serviceClient<simple_planner::change_point_num>("/change_point_num");
+    ros::Subscriber tag_sub = nh.subscribe("/tag_detections", 10, &tagCallback);
+    ros::Subscriber no_move_sub=nh.subscribe("no_move",10,no_move_callback);
+    ros::Subscriber target_num_sub=nh.subscribe<std_msgs::Int32MultiArray>("target_cube_num",10,target_num_callback);
+    ros::Publisher position_set_pub = nh.advertise<std_msgs::Int32>("position_state", 10);
+    ros::Publisher tar_tag = nh.advertise<std_msgs::Int32>("tar_tag", 10);
+    state=0;
+    loop_rate.sleep();
+    while (ros::ok())
+    {
+        std::cout<<state<<std::endl;
+        if(find_three_state==false)
+        {
+            if(target_cube_num.size()==3)
+            {
+                int i;
+                for(i=0;i<3;i++)
+                {
+                    if(std::find(place1.begin(), place1.end(), target_cube_num[i]) != place1.end())
+                    {
+                        place1.erase(std::remove(place1.begin(), place1.end(), target_cube_num[i]), place1.end()); //删除place1中的目标
+                        state=0;
+                        printVector<int>(place1);
+                        break;
+                    }
+                    else if(std::find(place2.begin(), place2.end(), target_cube_num[i]) != place2.end())
+                    {
+                        place2.erase(std::remove(place2.begin(), place2.end(), target_cube_num[i]), place2.end()); //删除place2中的目标
+                        state=1;
+                        printVector<int>(place2);
+                        break;
+                    }
+                    else if(std::find(place3.begin(), place3.end(), target_cube_num[i]) != place3.end())
+                    {
+                        place3.erase(std::remove(place3.begin(), place3.end(), target_cube_num[i]), place3.end()); //删除place3中的目标
+                        state=2;
+                        printVector<int>(place3);
+                        break;
+                    }
+                }
+                if(i >= 3)
+                {
+                    for(int j = 0;j < 3;j++)
+                    {
+                        if(!place1.empty())
+                        {
+                            state = 0;
+                            std_msgs::Int32 tar;
+                            tar.data = place1[0];
+                            tar_tag.publish(tar);
+                            place1.erase(std::remove(place1.begin(), place1.end(), tar.data), place1.end());
+                            printVector<int>(place1);
+                            break;
+                        }
+                        else if(!place2.empty())
+                        {
+                            state = 1;
+                            std_msgs::Int32 tar;
+                            tar.data = place2[0];
+                            tar_tag.publish(tar);
+                            place2.erase(std::remove(place2.begin(), place2.end(), tar.data), place2.end());
+                            printVector<int>(place2);
+                            break;
+                        }
+                        else if(!place3.empty())
+                        {
+                            state = 2;
+                            std_msgs::Int32 tar;
+                            tar.data = place3[0];
+                            tar_tag.publish(tar);
+                            place3.erase(std::remove(place3.begin(), place3.end(), tar.data), place3.end());
+                            printVector<int>(place3);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        switch (state)
+        {
+        case 0:
+            //第一阶段 用movebase
+            {
+               
+                bt_frame::ep_goal goal;
+                goal.type=0;
+                goal.x=0.8;
+                goal.y=1.0;
+                goal.yaw=3.14;
+                goal_pub.publish(goal);
+                
+                if(goal_reached)
+                {
+                    state++;
+                    goal_reached=false;
+                }   
+            }
+            break;
+        case 1:
+            {
+                // Node start(2 ,1), end(4,1);
+                // vector<pair<int, int>> path = dijkstra(grid, start, end);
+                bt_frame::ep_goal goal;
+                simple_planner::change_point_num ch_t;
+                ch_t.request.point_num=5;
+                float arrx[5]={1.0,1.55,2.0,2.0,1.92};
+                float arry[5]={1.0,1.0,1.0,0.6,0.05};
+                goal.type=1;
+                // if(change_point_client.call(ch_t))
+                // {
+                //     std::cout<<"change point num to"<<ch_t.request.point_num<<std::endl;
+                //     for (int i=0;i<5;i++) {
+                //     geometry_msgs::PointStamped point_t;
+                //     point_t.point.x=arrx[i];
+                //     point_t.point.y=arry[i];
+                //     goal.points.push_back(point_t);    
+                //     }
+                //     goal_pub.publish(goal);
+                // }
+                
+                for (int i=0;i<5;i++) {
+                    geometry_msgs::PointStamped point_t;
+                    point_t.point.x=arrx[i];
+                    point_t.point.y=arry[i];
+                    goal.points.push_back(point_t);    
+                }
+                goal_pub.publish(goal);
+                if(goal_reached)
+                {
+                    state++;
+                    goal_reached=false;
+                }
+            }
+            break;
+        case 2:
+            {
+                bt_frame::ep_goal goal;
+                goal.type=0;
+                goal.type=0;
+                goal.x=1.53;
+                goal.y=3.22;
+                goal.yaw=3.14;
+                goal_pub.publish(goal);
+                
+                if(goal_reached)
+                {
+                    state++;
+                    find_three_state=false;
+                    goal_reached=false;
+                }
+            }
+            break;
+        default:
+            break;
+        }
+        std_msgs::Int32 position_state;
+        position_state.data=state;
+        position_set_pub.publish(position_state);
+        ros::spinOnce();
+        loop_rate.sleep();        
+    }
+    
     return 0;
 }
