@@ -267,6 +267,16 @@ public:
             if(abs(tag_detection_pose.pose.pose.position.x-y_target)>0.005&&y_done==false)
             {
                 y_output = y_pid.calculate(y_target, tag_detection_pose.pose.pose.position.x);
+                //limit
+                if(y_output>0.3)
+                {
+                    y_output=0.3;
+                }
+                else if(y_output<-0.3)
+                {
+                    y_output=-0.3;
+                }
+              
             }
             else{
                 y_output=0;
@@ -438,8 +448,8 @@ private:
 
     PIDController x_pid, y_pid, z_pid;
     vector <int> target_cube_num;
-    vector<double> x_param = {1.1, 0.06, 0};
-    vector<double> y_param = {1.1, 0.06, 0};
+    vector<double> x_param = {1.1, 0.01, 0.01};
+    vector<double> y_param = {1, 0.01, 0.01};
     vector<double> z_param = {1, 0, 0};
 
 };

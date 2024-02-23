@@ -32,6 +32,6 @@ sleep 8
 # 	-e LIBGL_ALWAYS_SOFTWARE=1 \
 # 	-v /tmp/.X11-unix:/tmp/.X11-unix \
 # 	$CLIENT_IMAGE $CLI_EXE
-sleep 2
+
 docker network connect net-sim client 
 docker restart client 

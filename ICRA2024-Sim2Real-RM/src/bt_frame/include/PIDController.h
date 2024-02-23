@@ -19,7 +19,16 @@ class PIDController {
             double i_out = ki_ * integral_;
             double d_out = kd_ * (error - prev_error_);
             prev_error_ = error;
-            return p_out + i_out + d_out;
+            double output = p_out + i_out + d_out;
+            if(output<0.1&&output>0)
+            {
+                output = 0.1;
+            }
+            else if(output>-0.1&&output<0)
+            {
+                output = -0.1;
+            }
+            return output;
     }
 
     private:

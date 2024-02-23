@@ -229,36 +229,36 @@ AprilTagDetectionArray TagDetector::detectTags (
   // };
 
 
-// // TODO threshold solve
-//   // 二值化处理
-//   cv::Mat binary_image;
-//   cv::threshold(gray_image, binary_image, 64, 255, cv::THRESH_BINARY);
+// TODO threshold solve
+  // 二值化处理
+  cv::Mat binary_image;
+  cv::threshold(gray_image, binary_image, 64, 255, cv::THRESH_BINARY);
 
-//   // 更新apriltag_image结构，以便使用二值化后的图像
-//   image_u8_t apriltag_image = {
-//     .width = binary_image.cols,
-//     .height = binary_image.rows,
-//     .stride = static_cast<int>(binary_image.step), // 注意：step可能不等于cols
-//     .buf = binary_image.data
-//   };
-
-
-
-  // TODO对比度增强参数
-  double alpha = 1.8; // 对比度控制(1.0-3.0)
-  int beta = 0;       // 亮度控制(0-100) 0 default
-
-  // 增强对比度，使用convertTo函数来调整灰度图像的对比度和亮度
-  cv::Mat contrast_enhanced_image;
-  gray_image.convertTo(contrast_enhanced_image, -1, alpha, beta);
-
-  // 确保使用contrast_enhanced_image来创建apriltag_image结构
+  // 更新apriltag_image结构，以便使用二值化后的图像
   image_u8_t apriltag_image = {
-    .width = contrast_enhanced_image.cols,
-    .height = contrast_enhanced_image.rows,
-    .stride = static_cast<int>(contrast_enhanced_image.step), // 注意：步长(step)可能不等于列数(cols)
-    .buf = contrast_enhanced_image.data
+    .width = binary_image.cols,
+    .height = binary_image.rows,
+    .stride = static_cast<int>(binary_image.step), // 注意：step可能不等于cols
+    .buf = binary_image.data
   };
+
+
+
+  // // TODO对比度增强参数
+  // double alpha = 1.8; // 对比度控制(1.0-3.0)
+  // int beta = 0;       // 亮度控制(0-100) 0 default
+
+  // // 增强对比度，使用convertTo函数来调整灰度图像的对比度和亮度
+  // cv::Mat contrast_enhanced_image;
+  // gray_image.convertTo(contrast_enhanced_image, -1, alpha, beta);
+
+  // // 确保使用contrast_enhanced_image来创建apriltag_image结构
+  // image_u8_t apriltag_image = {
+  //   .width = contrast_enhanced_image.cols,
+  //   .height = contrast_enhanced_image.rows,
+  //   .stride = static_cast<int>(contrast_enhanced_image.step), // 注意：步长(step)可能不等于列数(cols)
+  //   .buf = contrast_enhanced_image.data
+  // };
 
   
 

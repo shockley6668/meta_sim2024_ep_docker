@@ -184,7 +184,7 @@ public:
             }
             if(watchboard_pose.header.frame_id=="map")
             {
-                float target_x=1.375;
+                float target_x=watchboard_pose.pose.position.x-0.3;
                 std::cout<<"error"<<target_x-robot_gobal_pose_.pose.position.x<<std::endl;
                 if(abs(target_x-robot_gobal_pose_.pose.position.x)>0.01)
                 {
@@ -313,8 +313,8 @@ private:
     bool detected=false;
     bool nav_done;
     bool y_done;
-    vector<double> y_param = {1.3, 0.06, 0};
-    vector<double> x_param = {0.8, 0.05, 0};
+    vector<double> x_param = {1.1, 0.01, 0.01};
+    vector<double> y_param = {1, 0.01, 0.01};
     int take_cube_num;
     const float aim_set=0.045;
     PIDController y_pid;
