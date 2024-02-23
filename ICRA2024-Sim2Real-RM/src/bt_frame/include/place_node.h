@@ -54,6 +54,7 @@ public:
         sendBaseVel(0,0,0);
         watchboard_pose.header.frame_id = "none";
         y_done=false;
+        first_tag=false;
         goal_msg.target_pose.header.frame_id = "map";
         goal_msg.target_pose.header.stamp = ros::Time::now();
         goal_msg.target_pose.pose.position.x = 1.18;
@@ -162,8 +163,9 @@ public:
         if(y_done==true)
         {
             GetGlobalRobotPose(tf_listener_, "map", robot_gobal_pose_);
-            if(detected)
+            if(detected&&first_tag==false)
             {
+                ros::Duration(0.5).sleep();
                 tf::Transform transform;
                 tf::poseMsgToTF(aim_tag.pose.pose.pose, transform);
                 tf_broadcaster_->sendTransform(tf::StampedTransform(transform, ros::Time::now(), "camera_color_optical_frame", "watchboard_aim_tag"));
@@ -173,19 +175,19 @@ public:
                 watchboard_tf.frame_id_ = "watchboard_aim_tag";
                 watchboard_tf.stamp_ = ros::Time();
                 try{
-                    tf_listener_->waitForTransform( "map", "watchboard_aim_tag", ros::Time::now(), ros::Duration(0.5));
+                    tf_listener_->waitForTransform("map", "watchboard_aim_tag", ros::Time(0), ros::Duration(0.5));
                     tf_listener_->transformPose( "map", watchboard_tf, watchboard_map_tf);
                 }
                 catch (tf::TransformException &ex) {
                     ROS_ERROR("Failed to transform watchboard_aim_tag pose: %s", ex.what());
                 }
                 tf::poseStampedTFToMsg(watchboard_map_tf, watchboard_pose);
-                
+                first_tag=true;
             }
-            if(watchboard_pose.header.frame_id=="map")
+            if(first_tag)
             {
                 float target_x=watchboard_pose.pose.position.x-0.3;
-                std::cout<<"error"<<target_x-robot_gobal_pose_.pose.position.x<<std::endl;
+                std::cout<<"target_x"<<target_x<<std::endl;
                 if(abs(target_x-robot_gobal_pose_.pose.position.x)>0.01)
                 {
                     float cmd_x=x_pid.calculate(target_x, robot_gobal_pose_.pose.position.x);
@@ -281,7 +283,7 @@ private:
                 {
                     aim_tag=_msg->detections[i];
                     detected=true;
-                    std::cout<<aim_tag.pose.pose.pose.position.x<<std::endl;
+
                     break;
                 }
                 else{
@@ -313,7 +315,8 @@ private:
     bool detected=false;
     bool nav_done;
     bool y_done;
-    vector<double> x_param = {1.1, 0.01, 0.01};
+    bool first_tag;
+    vector<double> x_param = {1, 0.01, 0.01};
     vector<double> y_param = {1, 0.01, 0.01};
     int take_cube_num;
     const float aim_set=0.045;
