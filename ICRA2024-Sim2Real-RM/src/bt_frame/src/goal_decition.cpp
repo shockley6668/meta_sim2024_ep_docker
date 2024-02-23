@@ -182,7 +182,42 @@ int main(int argc, char** argv) {
                         break;
                     }
                 }
+                if(i >= 3)
+                {
                     for(int j = 0;j < 3;j++)
+                    {
+                        if(!place1.empty())
+                        {
+                            state = 0;
+                            std_msgs::Int32 tar;
+                            tar.data = place1[0];
+                            tar_tag.publish(tar);
+                            place1.erase(std::remove(place1.begin(), place1.end(), tar.data), place1.end());
+                            printVector<int>(place1);
+                            break;
+                        }
+                        else if(!place2.empty())
+                        {
+                            state = 1;
+                            std_msgs::Int32 tar;
+                            tar.data = place2[0];
+                            tar_tag.publish(tar);
+                            place2.erase(std::remove(place2.begin(), place2.end(), tar.data), place2.end());
+                            printVector<int>(place2);
+                            break;
+                        }
+                        else if(!place3.empty())
+                        {
+                            state = 2;
+                            std_msgs::Int32 tar;
+                            tar.data = place3[0];
+                            tar_tag.publish(tar);
+                            place3.erase(std::remove(place3.begin(), place3.end(), tar.data), place3.end());
+                            printVector<int>(place3);
+                            break;
+                        }
+                    }
+                }
             }
         }
         switch (state)
