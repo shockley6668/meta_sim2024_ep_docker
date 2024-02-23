@@ -33,8 +33,12 @@ catkin_package(CATKIN_DEPENDS  message_runtime)
 include_directories(include ${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR})
 
 add_executable(local_planner src/local_planner.cpp)
-target_link_libraries(local_planner ${catkin_LIBRARIES})
+add_dependencies(local_planner simple_planner_generate_messages_cpp ${${PROJECT_NAME}_EXPORTED_TARGETS})
+
+target_link_libraries(local_planner  ${catkin_LIBRARIES})
 
 add_executable(global_planner src/global_planner.cpp)
+add_dependencies(global_planner simple_planner_generate_messages_cpp ${${PROJECT_NAME}_EXPORTED_TARGETS})
+
 target_link_libraries(global_planner ${catkin_LIBRARIES})
 
