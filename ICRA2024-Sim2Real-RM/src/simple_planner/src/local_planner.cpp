@@ -92,6 +92,7 @@ namespace robomaster{
                 global_path_ = *msg;
                 prune_index_ = 0;
                 plan_ = true;
+                xy_done = false;
             }
         }
     private:
@@ -133,7 +134,11 @@ namespace robomaster{
                 
                 if (GetEuclideanDistance(robot_pose,global_path_.poses.back())<= goal_tolerance_
                     && prune_index_ == global_path_.poses.size() - 1){
-                    plan_ = false;
+                    xy_done=true;
+                }
+                if(xy_done&&abs(diff_yaw)<0.1)
+                {
+                    plan_=false;
                     geometry_msgs::Twist cmd_vel;
                     cmd_vel.linear.x = 0;
                     cmd_vel.linear.y = 0;
@@ -143,7 +148,6 @@ namespace robomaster{
                     ROS_INFO("Planning Success!");
                     return;
                 }
-
                 // 4. Get prune index from given global path
                 FindNearstPose(robot_pose, global_path_, prune_index_, prune_ahead_dist_);// TODO: double direct prune index is needed later!
 
@@ -263,6 +267,7 @@ namespace robomaster{
             {
                 cmd_vel.angular.z=0;        
             }
+            
             //std::cout<<"diff_yaw:"<<diff_yaw<<std::endl;
             //速度限幅
             velocitylimit(cmd_vel.linear.x,3);
@@ -323,6 +328,8 @@ namespace robomaster{
 
 
         bool plan_;
+        bool xy_done;
+
         int prune_index_;
         nav_msgs::Path global_path_;
 

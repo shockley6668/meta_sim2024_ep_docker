@@ -18,6 +18,7 @@ public:
         goal_reached=false;
         move_base_send=false;
         action_client_ = std::make_shared<actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>>("move_base", true);
+        
     }
     static PortsList providedPorts()
     {
@@ -57,15 +58,19 @@ public:
                     std::cout<<action_client_->getState().toString()<<std::endl;
                     if (action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
                     {
-                        
+                        std::cout<<"move base Goal reached"<<std::endl;
                         goal_reached=true;
+                    }
+                    if(action_client_->getState() == actionlib::SimpleClientGoalState::ABORTED)
+                    {
+                        move_base_send=false;
                     }
                 }
                 
 
             }
             //simple_planner
-            else
+            else if(goal_.type==1)
             {
                 if(move_base_send==false)
                 {
@@ -85,20 +90,21 @@ public:
                     move_base_send=true;
                 }
             }
+            if(goal_reached)
+            {
+                goal_reached=false;
+                std_msgs::Int32 msg;
+                msg.data=1;
+                for(int i=0;i<10;i++)
+                {
+                    goal_status_pubs_.publish(msg);
+                }
+                std::cout<<"fuck reached"<<std::endl;
+                return BT::NodeStatus::SUCCESS;
+            }
         }
         
-        if(goal_reached)
-        {
-            goal_reached=false;
-            std_msgs::Int32 msg;
-            msg.data=1;
-            for(int i=0;i<10;i++)
-            {
-                goal_status_pubs_.publish(msg);
-            }
-            
-            return BT::NodeStatus::SUCCESS;
-        }
+        
         
         return BT::NodeStatus::RUNNING;
     }
@@ -117,9 +123,9 @@ private:
     void goalStatusCallback(const geometry_msgs::Twist& msg)
     {
         
-        if (goal_reached==false&&msg.linear.z == 1)
+        if (goal_reached==false&&msg.linear.z == 1&&goal_.type==1)
         {
-            ROS_INFO("Goal reached");
+            ROS_INFO("simple planner Goal reached");
             goal_reached=true;
         }
     }
@@ -129,7 +135,7 @@ private:
     ros::Publisher goal_pub_;
     ros::Subscriber goal_status_sub_;
     ros::Publisher goal_status_pubs_;
-
+    
     bool goal_received=false;
     bool goal_reached=false;
 

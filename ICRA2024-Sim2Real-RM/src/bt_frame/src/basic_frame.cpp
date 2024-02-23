@@ -8,6 +8,7 @@
 #include <bt_action_node.h>
 #include <bt_service_node.h>
 #include <check_done.h>
+#include "place_node.h"
 using namespace BT;
 using namespace std;
 namespace chr = std::chrono;
@@ -61,22 +62,6 @@ public:
     }
 };
 
-class Place:public SyncActionNode
-{
-public:
-    Place(const std::string& name, const NodeConfig& config):SyncActionNode(name, config){}
-    static PortsList providedPorts()
-    {
-        return {};
-    }
-    NodeStatus tick() override
-    {
-        cout << "------     Robot placing block      ------\n";
-
-        cout << "------     Robot placed block       ------\n";
-        return NodeStatus::SUCCESS;
-    }
-};
 
 // static const char* xml_text = R"(
 // <root BTCPP_format="4">
@@ -99,36 +84,37 @@ public:
 // </root>
 // )";
 
-// static const char* xml_text = R"(
-// <root BTCPP_format="4">
-//     <BehaviorTree ID="MainTree" _fullpath="">
-//         <Sequence name="Sequence">
-//             <GotoWatchBoard name="goto_watch_board" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}"/>
-//             <RetryUntilSuccessful num_attempts="100">
-//                 <Sequence>
-//                     <SimplePlanner name="simple_planner"/>
-//                     <Take name="take" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}" takeing_cube_num="{takeing_cube_num}"/>
-//                     <CheckDone name="check_done"/>
-//                 </Sequence>
-//             </RetryUntilSuccessful>
-//             <Stop name="stop" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}"/>
-            
-//         </Sequence>
-//     </BehaviorTree>
-// </root>
-// )";
-
 static const char* xml_text = R"(
 <root BTCPP_format="4">
     <BehaviorTree ID="MainTree" _fullpath="">
         <Sequence name="Sequence">
-            <Take name="take" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}" takeing_cube_num="{takeing_cube_num}"/>
+            <GotoWatchBoard name="goto_watch_board" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}"/>
+            <RetryUntilSuccessful num_attempts="100">
+                <Sequence>
+                    <SimplePlanner name="simple_planner"/>
+                    <Take name="take" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}" takeing_cube_num="{takeing_cube_num}"/>
+                    <Place name="place" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}" takeing_cube_num="{takeing_cube_num}"/>
+                    <CheckDone name="check_done"/>
+                </Sequence>
+            </RetryUntilSuccessful>
             <Stop name="stop" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}"/>
             
         </Sequence>
     </BehaviorTree>
 </root>
 )";
+
+// static const char* xml_text = R"(
+// <root BTCPP_format="4">
+//     <BehaviorTree ID="MainTree" _fullpath="">
+//         <Sequence name="Sequence">
+//             <Take name="take" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}" takeing_cube_num="{takeing_cube_num}"/>
+//             <Place name="place" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}" takeing_cube_num="{takeing_cube_num}"/>
+//             <Stop name="stop" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}"/>
+//         </Sequence>
+//     </BehaviorTree>
+// </root>
+// )";
 // A custom structuree that I want to visualize in Groot2
 struct Position2D {
   double x;
@@ -175,6 +161,7 @@ int main(int argc, char **argv)
     RosBuilder<GotoWatchBoard>(factory, "GotoWatchBoard", nh);
     RosBuilder<SimplePlanner>(factory,"SimplePlanner",nh);
     RosBuilder<Take>(factory,"Take",nh);
+    RosBuilder<Place>(factory,"Place",nh);
     factory.registerNodeType<Stop>("Stop");
     factory.registerNodeType<Check_done>("CheckDone");
     //factory.registerNodeType<Goal>("Goal");

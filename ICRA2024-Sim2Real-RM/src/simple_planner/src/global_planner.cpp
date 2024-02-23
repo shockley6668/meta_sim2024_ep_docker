@@ -71,10 +71,8 @@ class GlobalPlanner{
 //  }
   bool ChangePointNum(simple_planner::change_point_num::Request &req,
                       simple_planner::change_point_num::Response &res){
-    std::cout<<req.point_num<<std::endl;
     point_num_ = req.point_num;
     res.state = true;
-    std::cout<<point_num_<<std::endl;
     return true;
   }
   void Record(const ros::TimerEvent& event){

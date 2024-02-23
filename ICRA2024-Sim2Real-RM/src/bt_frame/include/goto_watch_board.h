@@ -8,6 +8,7 @@
 #include <geometry_msgs/Twist.h>
 #include <vector>
 #include "apriltag_ros/AprilTagDetectionArray.h"
+#include <algorithm> 
 using namespace BT;
 typedef struct{
     float x;
@@ -157,21 +158,27 @@ private:
     }
     void tagCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr &_msg)
     {
-        if(_msg->detections.size()>=3&&reached_flag)
+        if(_msg->detections.size()>=6&&reached_flag)
         {
-            
-            for(size_t i=0; i<_msg->detections.size();i++)
+            apriltag_ros::AprilTagDetectionArray temp;
+            temp=*_msg;
+            std::sort(temp.detections.begin(), temp.detections.end(), 
+              [](const apriltag_ros::AprilTagDetection& det1, const apriltag_ros::AprilTagDetection& det2) {
+                  return det1.pose.pose.pose.position.x < det2.pose.pose.pose.position.x;
+              });
+            for(size_t i=0; i<temp.detections.size();i++)
             {
-                if(_msg->detections[i].id[0]<6)
+                cout<<"tempid:"<<temp.detections[i].id[0]<<endl;
+                if(temp.detections[i].id[0]<6 && temp.detections[i].pose.pose.pose.position.y<-0.2)
                 {
                     for(int n:target_cube_num)
                     {
-                        if(n==_msg->detections[i].id[0])
+                        if(n==temp.detections[i].id[0])
                         {
                             continue;
                         }
                     }
-                    target_cube_num.push_back(_msg->detections[i].id[0]);
+                    target_cube_num.push_back(temp.detections[i].id[0]);
                 }
             }
         }
@@ -184,6 +191,7 @@ private:
     
     bool reached_flag=false;
     vector<int> target_cube_num;
+    vector<int> target_cube_num_sort;
     std::vector<Point2D> path_list;
 
 };
