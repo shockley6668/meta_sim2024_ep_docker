@@ -129,6 +129,7 @@ include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
   /opt/ep_ws/src/rmus_solution/bt_frame/include/
+  /opt/ep_ws/src/rmus_solution/simple_planner/include/
 )
 
 ## Declare a C++ library
