@@ -211,7 +211,7 @@ int main(int argc, char** argv) {
                 simple_planner::change_point_num ch_t;
                 ch_t.request.point_num=5;
                 float arrx[5]={1.0,1.55,2.0,2.0,1.92};
-                float arry[5]={1.0,1.0,1.0,0.6,0.05};
+                float arry[5]={1.0,1.0,1.0,0.6,-0.02};
                 goal.type=1;
                 // if(change_point_client.call(ch_t))
                 // {
@@ -244,9 +244,9 @@ int main(int argc, char** argv) {
                 bt_frame::ep_goal goal;
                 goal.type=0;
                 goal.type=0;
-                goal.x=1.53;
-                goal.y=3.22;
-                goal.yaw=3.14;
+                goal.x=1.3;
+                goal.y=2.9;
+                goal.yaw= 2.392;
                 goal_pub.publish(goal);
                 
                 if(goal_reached)

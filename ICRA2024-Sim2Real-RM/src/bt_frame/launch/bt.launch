@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="bt_frame" type="basic_frame" name="basic_frame" output="screen"/>
+    <node pkg="bt_frame" type="goal_decition" name="goal_decition" output="log"/>
+</launch>

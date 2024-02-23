@@ -33,6 +33,7 @@ public:
         x_pid = PIDController(x_param);
         y_pid = PIDController(y_param);
         z_pid = PIDController(z_param);
+        tf_broadcaster_=std::make_shared<tf::TransformBroadcaster>();
         tf_listener_ = std::make_shared<tf::TransformListener>();
         take_node_state=0;
         target_cube_num_pub=node_.advertise<std_msgs::Int32MultiArray>("target_cube_num", 10);
@@ -155,6 +156,10 @@ public:
                         tag_detection_pose.pose.pose.position.x = (msg->detections[detected_id[0]].pose.pose.pose.position.x + msg->detections[detected_id[1]].pose.pose.pose.position.x)/2;
                         tag_detection_pose.pose.pose.position.y = (msg->detections[detected_id[0]].pose.pose.pose.position.y + msg->detections[detected_id[1]].pose.pose.pose.position.y)/2;
                         tag_detection_pose.pose.pose.position.z = (msg->detections[detected_id[0]].pose.pose.pose.position.z + msg->detections[detected_id[1]].pose.pose.pose.position.z)/2;
+                        tag_detection_pose.pose.pose.orientation.x = msg->detections[detected_id[0]].pose.pose.pose.orientation.x;
+                        tag_detection_pose.pose.pose.orientation.y = msg->detections[detected_id[0]].pose.pose.pose.orientation.y;
+                        tag_detection_pose.pose.pose.orientation.z = msg->detections[detected_id[0]].pose.pose.pose.orientation.z;
+                        tag_detection_pose.pose.pose.orientation.w = msg->detections[detected_id[0]].pose.pose.pose.orientation.w;
                         block_detected = true;
                     }
                     
@@ -184,6 +189,8 @@ public:
         
         tag_detection_status_sub = node_.subscribe("/tag_detections", 10, &Take::poseCallback, this);
         position_state_sub=node_.subscribe("/position_state", 10, &Take::positionStateCallback, this);
+        
+        target_tag_map_pose.header.frame_id = "none";
         tag_id = -1;
         y_done=false;
         no_need_block_time=0;
@@ -210,7 +217,7 @@ public:
             cout<<"No need block"<<endl;
             return NodeStatus::FAILURE;
         }
-        if(!block_detected)
+        if(!block_detected&&target_tag_map_pose.header.frame_id!="map")
         {
             geometry_msgs::Twist twist;
             twist.linear.x = 0;
@@ -223,18 +230,37 @@ public:
             ros::Duration(0.05).sleep();
         }
         if(!wall_beside && block_detected)
-        {
-
-            if(difilute_position)
-            {
-                ROS_INFO("The robot is in difilute position, please move the robot to the correct position!!");
-                tf::Transform transform;
-                transform.setOrigin(tf::Vector3(tag_detection_pose.pose.pose.position.x, tag_detection_pose.pose.pose.position.y, tag_detection_pose.pose.pose.position.z));
-                tf::Quaternion q(tag_detection_pose.pose.pose.orientation.x, tag_detection_pose.pose.pose.orientation.y, tag_detection_pose.pose.pose.orientation.z, tag_detection_pose.pose.pose.orientation.w);
-                transform.setRotation(q);
-                tf_broadcaster_->sendTransform(tf::StampedTransform(transform, ros::Time::now(), "camera_color_optical_frame", "target_tag"));
-                
+        {   
+            tf::Transform transform;
+            
+            transform.setOrigin(tf::Vector3(tag_detection_pose.pose.pose.position.x, tag_detection_pose.pose.pose.position.y, tag_detection_pose.pose.pose.position.z));
+            tf::Quaternion q(tag_detection_pose.pose.pose.orientation.x, tag_detection_pose.pose.pose.orientation.y, tag_detection_pose.pose.pose.orientation.z, tag_detection_pose.pose.pose.orientation.w);
+            std::cout<<tag_detection_pose.pose.pose.orientation.x<<" "<<tag_detection_pose.pose.pose.orientation.y<<" "<<tag_detection_pose.pose.pose.orientation.z<<" "<<tag_detection_pose.pose.pose.orientation.w<<std::endl;
+            transform.setRotation(q);
+            
+            tf_broadcaster_->sendTransform(tf::StampedTransform(transform, ros::Time::now(), "camera_color_optical_frame", "target_tag"));
+            
+            tf::Stamped<tf::Pose> target_tag_map_pose_tf;
+            tf::Stamped<tf::Pose> target_tag_pose_tf;
+            target_tag_pose_tf.setIdentity();
+            target_tag_pose_tf.frame_id_ = "target_tag";
+            target_tag_pose_tf.stamp_ = ros::Time();
+            try{
+                tf_listener_->waitForTransform( "map", "target_tag", ros::Time(0), ros::Duration(0.5));
+                tf_listener_->transformPose( "map", target_tag_pose_tf, target_tag_map_pose_tf);
             }
+            catch (tf::TransformException &ex) {
+                ROS_ERROR("Failed to transform robot pose: %s", ex.what());
+            }
+            
+            tf::poseStampedTFToMsg(target_tag_map_pose_tf, target_tag_map_pose);
+            std::cout<<"map_x: "<<target_tag_map_pose.pose.position.x<<" map_y"<<target_tag_map_pose.pose.position.y<<std::endl;
+
+            // if(1)
+            // {
+            //     ROS_INFO("The robot is in difilute position, please move the robot to the correct position!!");
+                
+            // }
 
             double y_output;
             double x_output;
@@ -246,12 +272,12 @@ public:
                 y_output=0;
                 y_done=true;
             }
-            if(abs(tag_detection_pose.pose.pose.position.z-x_target)>0.06&&y_done)
+            if(abs(tag_detection_pose.pose.pose.position.z-x_target)>0.01&&y_done)
             {
                 x_output = -x_pid.calculate(x_target, tag_detection_pose.pose.pose.position.z);
                 // x_output=0;
             }
-            else if(abs(tag_detection_pose.pose.pose.position.z-x_target)<=0.06&&y_done) 
+            else if(abs(tag_detection_pose.pose.pose.position.z-x_target)<=0.01&&y_done) 
             {
                 geometry_msgs::Twist twist;
                 x_output=0;
@@ -266,8 +292,8 @@ public:
                 arm_position.position.y = -0.08;
                 arm_position_pub.publish(arm_position);
                 ros::Duration(2).sleep();
-                sendBaseVel(0.25,0,0);
-                ros::Duration(0.4).sleep();
+                // sendBaseVel(0.25,0,0);
+                // ros::Duration(0.4).sleep();
                 sendBaseVel(0,0,0);
                 ros::Duration(1).sleep();
                 close_gripper();
@@ -296,13 +322,87 @@ public:
             // twist.angular.y = 0;
             // twist.angular.z = z_output * 0.8;
             cmd_pub.publish(twist);
-            ros::Duration(0.05).sleep();
+            //ros::Duration(0.05).sleep();
             std::cout << "x : " << tag_detection_pose.pose.pose.position.x << std::endl;
             // std::cout << "pid output in x : " << x_output << std::endl;
             // std::cout << "pid output in y : " << y_output << std::endl;
             // std::cout << "pid output in z : " << z_output << std::endl;
             
             
+        }
+
+        if(!block_detected && target_tag_map_pose.header.frame_id=="map")
+        {
+            ROS_INFO("The target block was blocked by other tag!");
+            tf::Transform transform;
+            transform.setOrigin(tf::Vector3(target_tag_map_pose.pose.position.x, target_tag_map_pose.pose.position.y, target_tag_map_pose.pose.position.z));
+            tf::Quaternion q(target_tag_map_pose.pose.orientation.x, target_tag_map_pose.pose.orientation.y, target_tag_map_pose.pose.orientation.z, target_tag_map_pose.pose.orientation.w);
+            transform.setRotation(q);
+            tf_broadcaster_->sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", "target_tag"));
+            
+            tf::Stamped<tf::Pose> target_tag_pose_tf;
+            target_tag_pose_tf.setIdentity();
+            target_tag_pose_tf.frame_id_ = "target_tag";
+            target_tag_pose_tf.stamp_ = ros::Time();
+            tf::Stamped<tf::Pose> target_tag_camera_pose_tf;
+
+            try{
+                tf_listener_->waitForTransform( "camera_color_optical_frame", "target_tag", ros::Time(0), ros::Duration(0.5));
+                tf_listener_->transformPose( "camera_color_optical_frame", target_tag_pose_tf, target_tag_camera_pose_tf);
+            }
+            catch (tf::TransformException &ex) {
+                ROS_ERROR("Failed to transform robot pose: %s", ex.what());
+            }
+            geometry_msgs::PoseStamped target_tag_camera_pose;
+            tf::poseStampedTFToMsg(target_tag_camera_pose_tf, target_tag_camera_pose);
+            
+            std::cout<<"camera_x: "<<target_tag_camera_pose.pose.position.x<<" camera_y"<<target_tag_camera_pose.pose.position.y<<std::endl;
+            double y_output;
+            double x_output;
+            if(abs(target_tag_camera_pose.pose.position.x-y_target)>0.01&&y_done==false)
+            {
+                y_output = y_pid.calculate(y_target, target_tag_camera_pose.pose.position.x);
+            }
+            else{
+                y_output=0;
+                y_done=true;
+            }
+            if(abs(target_tag_camera_pose.pose.position.z-x_target)>0.01&&y_done)
+            {
+                
+                x_output = -x_pid.calculate(x_target, target_tag_camera_pose.pose.position.z);
+                // x_output=0;
+            }
+
+            else if(abs(target_tag_camera_pose.pose.position.z-x_target)<=0.01&&y_done) 
+            {
+                geometry_msgs::Twist twist;
+                x_output=0;
+                twist.linear.x = 0;
+                twist.linear.y = 0;
+                cmd_pub.publish(twist);
+                open_gripper();
+                ros::Duration(0.7).sleep();
+                setOutput<int>("takeing_cube_num",tag_id);
+                geometry_msgs::Pose arm_position;
+                arm_position.position.x = 0.19;
+                arm_position.position.y = -0.08;
+                arm_position_pub.publish(arm_position);
+                ros::Duration(2).sleep();
+                
+                sendBaseVel(0,0,0);
+                ros::Duration(1).sleep();
+                close_gripper();
+                ros::Duration(1).sleep();
+                reset_arm();
+                ros::Duration(1).sleep();
+                tag_detection_status_sub.shutdown();
+                return NodeStatus::SUCCESS;
+            }
+            geometry_msgs::Twist twist;
+            twist.linear.x = x_output;
+            twist.linear.y = y_output;
+            cmd_pub.publish(twist);
         }
         
         return NodeStatus::RUNNING;
@@ -328,10 +428,11 @@ private:
     ros::Publisher no_move_pub;
     ros::Publisher target_cube_num_pub;
     ros::Subscriber position_state_sub;
+    geometry_msgs::PoseStamped target_tag_map_pose;
     int tag_id;
     int take_node_state;
 
-    const float x_target = 0.18;
+    const float x_target = 0.15;
     const float y_target = 0.045;
     int no_need_block_time;
 
