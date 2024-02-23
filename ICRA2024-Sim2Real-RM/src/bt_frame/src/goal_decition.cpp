@@ -147,6 +147,7 @@ int main(int argc, char** argv) {
     ros::Subscriber no_move_sub=nh.subscribe("no_move",10,no_move_callback);
     ros::Subscriber target_num_sub=nh.subscribe<std_msgs::Int32MultiArray>("target_cube_num",10,target_num_callback);
     ros::Publisher position_set_pub = nh.advertise<std_msgs::Int32>("position_state", 10);
+    ros::Publisher tar_tag = nh.advertise<std_msgs::Int32>("tar_tag", 10);
     state=0;
     loop_rate.sleep();
     while (ros::ok())
@@ -156,9 +157,9 @@ int main(int argc, char** argv) {
         {
             if(target_cube_num.size()==3)
             {
-                for(int i=0;i<3;i++)
+                int i;
+                for(i=0;i<3;i++)
                 {
-                    
                     if(std::find(place1.begin(), place1.end(), target_cube_num[i]) != place1.end())
                     {
                         place1.erase(std::remove(place1.begin(), place1.end(), target_cube_num[i]), place1.end()); //删除place1中的目标
@@ -181,6 +182,7 @@ int main(int argc, char** argv) {
                         break;
                     }
                 }
+                    for(int j = 0;j < 3;j++)
             }
         }
         switch (state)
