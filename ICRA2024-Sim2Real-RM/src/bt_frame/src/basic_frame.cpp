@@ -98,6 +98,14 @@ static const char* xml_text = R"(
                     <CheckDone name="check_done" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}"/>
                 </Sequence>
             </RetryUntilSuccessful>
+            <RetryUntilSuccessful num_attempts="100">
+                <Sequence>
+                    <SimplePlanner name="simple_planner"/>
+                    <Take_Up name="take up"/>
+                    <Place_Down name="Place down" target_cube_num2="{target_cube_num2}"/>
+                    <CheckDone name="check_done"/>
+                </Sequence>
+            </RetryUntilSuccessful>
             <Stop name="stop" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}"/>
             
         </Sequence>

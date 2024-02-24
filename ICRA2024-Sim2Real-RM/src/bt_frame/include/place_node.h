@@ -186,7 +186,7 @@ public:
             }
             if(first_tag)
             {
-                float target_x=watchboard_pose.pose.position.x-0.3;
+                float target_x=watchboard_pose.pose.position.x-0.28;
                 std::cout<<"target_x"<<target_x<<std::endl;
                 if(abs(target_x-robot_gobal_pose_.pose.position.x)>0.01)
                 {
@@ -251,7 +251,7 @@ private:
     {
         geometry_msgs::Pose arm_position;
         arm_position.position.x = 0.18;
-        arm_position.position.y = -0.03;
+        arm_position.position.y = -0.05;
         arm_position_pub.publish(arm_position);
         for(int i=0;i<3;i++)
         {

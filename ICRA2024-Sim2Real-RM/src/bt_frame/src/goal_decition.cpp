@@ -161,18 +161,19 @@ int main(int argc, char** argv) {
     loop_rate.sleep();
     while (ros::ok())
     {
-        std::cout<<state<<std::endl;
+    
+        
         if(find_three_state==false&&first_find==false)
         {
 
-            
+            std::cout<<"find_three_state"<<find_three_state<<std::endl;
             if(!place1.empty())
             {
                 state = 0;
                 std_msgs::Int32 tar;
                 tar.data = place1[0];
                 tar_tag.publish(tar);
-                place1.erase(std::remove(place1.begin(), place1.end(), tar.data), place1.end());
+                std::cout<<"place1"<<std::endl;
                 printVector<int>(place1);
 
             }
@@ -182,7 +183,7 @@ int main(int argc, char** argv) {
                 std_msgs::Int32 tar;
                 tar.data = place2[0];
                 tar_tag.publish(tar);
-                place2.erase(std::remove(place2.begin(), place2.end(), tar.data), place2.end());
+                std::cout<<"place2"<<std::endl;
                 printVector<int>(place2);
 
             }
@@ -192,7 +193,7 @@ int main(int argc, char** argv) {
                 std_msgs::Int32 tar;
                 tar.data = place3[0];
                 tar_tag.publish(tar);
-                place3.erase(std::remove(place3.begin(), place3.end(), tar.data), place3.end());
+                std::cout<<"place3"<<std::endl;
                 printVector<int>(place3);
    
             }
@@ -203,7 +204,7 @@ int main(int argc, char** argv) {
             
             
         }
-        else if(first_find==false&&find_three_state==false){
+        else if(first_find==false&&find_three_state==true){
             int i=0;
             for( i=0;i<3;i++)
             {
