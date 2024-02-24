@@ -11,7 +11,7 @@
 using namespace std;
 
 bool goal_reached=false;
-
+bool first_find=true;
 int state;
 bool send_flag=false;
 vector <int> place1;
@@ -148,78 +148,94 @@ int main(int argc, char** argv) {
     ros::Subscriber target_num_sub=nh.subscribe<std_msgs::Int32MultiArray>("target_cube_num",10,target_num_callback);
     ros::Publisher position_set_pub = nh.advertise<std_msgs::Int32>("position_state", 10);
     ros::Publisher tar_tag = nh.advertise<std_msgs::Int32>("tar_tag", 10);
+    ros::Subscriber position_state_sub = nh.subscribe<std_msgs::Int32>("check_done", 10, [&](const std_msgs::Int32::ConstPtr &msg){
+        if(msg->data == 1)
+        {
+            find_three_state = false;
+        }
+        else{
+            find_three_state = true;
+        }
+    });
     state=0;
     loop_rate.sleep();
     while (ros::ok())
     {
-        // std::cout<<state<<std::endl;
-        if(find_three_state==false)
+        std::cout<<state<<std::endl;
+        if(find_three_state==false&&first_find==false)
         {
-            if(target_cube_num.size()==3)
+
+            
+            if(!place1.empty())
             {
-                int i;
-                for(i=0;i<3;i++)
+                state = 0;
+                std_msgs::Int32 tar;
+                tar.data = place1[0];
+                tar_tag.publish(tar);
+                place1.erase(std::remove(place1.begin(), place1.end(), tar.data), place1.end());
+                printVector<int>(place1);
+
+            }
+            else if(!place2.empty())
+            {
+                state = 1;
+                std_msgs::Int32 tar;
+                tar.data = place2[0];
+                tar_tag.publish(tar);
+                place2.erase(std::remove(place2.begin(), place2.end(), tar.data), place2.end());
+                printVector<int>(place2);
+
+            }
+            else if(!place3.empty())
+            {
+                state = 2;
+                std_msgs::Int32 tar;
+                tar.data = place3[0];
+                tar_tag.publish(tar);
+                place3.erase(std::remove(place3.begin(), place3.end(), tar.data), place3.end());
+                printVector<int>(place3);
+   
+            }
+            else{
+                state=0;
+            }
+            
+            
+            
+        }
+        else if(first_find==false&&find_three_state==false){
+            int i=0;
+            for( i=0;i<3;i++)
+            {
+                if(std::find(place1.begin(), place1.end(), target_cube_num[i]) != place1.end())
                 {
-                    if(std::find(place1.begin(), place1.end(), target_cube_num[i]) != place1.end())
-                    {
-                        place1.erase(std::remove(place1.begin(), place1.end(), target_cube_num[i]), place1.end()); //删除place1中的目标
-                        state=0;
-                        printVector<int>(place1);
-                        break;
-                    }
-                    else if(std::find(place2.begin(), place2.end(), target_cube_num[i]) != place2.end())
-                    {
-                        place2.erase(std::remove(place2.begin(), place2.end(), target_cube_num[i]), place2.end()); //删除place2中的目标
-                        state=1;
-                        printVector<int>(place2);
-                        break;
-                    }
-                    else if(std::find(place3.begin(), place3.end(), target_cube_num[i]) != place3.end())
-                    {
-                        place3.erase(std::remove(place3.begin(), place3.end(), target_cube_num[i]), place3.end()); //删除place3中的目标
-                        state=2;
-                        printVector<int>(place3);
-                        break;
-                    }
+                    place1.erase(std::remove(place1.begin(), place1.end(), target_cube_num[i]), place1.end()); //删除place1中的目标
+                    state=0;
+                    printVector<int>(place1);
+                    break;
                 }
-                if(i >= 3)
+                else if(std::find(place2.begin(), place2.end(), target_cube_num[i]) != place2.end())
                 {
-                    for(int j = 0;j < 3;j++)
-                    {
-                        if(!place1.empty())
-                        {
-                            state = 0;
-                            std_msgs::Int32 tar;
-                            tar.data = place1[0];
-                            tar_tag.publish(tar);
-                            place1.erase(std::remove(place1.begin(), place1.end(), tar.data), place1.end());
-                            printVector<int>(place1);
-                            break;
-                        }
-                        else if(!place2.empty())
-                        {
-                            state = 1;
-                            std_msgs::Int32 tar;
-                            tar.data = place2[0];
-                            tar_tag.publish(tar);
-                            place2.erase(std::remove(place2.begin(), place2.end(), tar.data), place2.end());
-                            printVector<int>(place2);
-                            break;
-                        }
-                        else if(!place3.empty())
-                        {
-                            state = 2;
-                            std_msgs::Int32 tar;
-                            tar.data = place3[0];
-                            tar_tag.publish(tar);
-                            place3.erase(std::remove(place3.begin(), place3.end(), tar.data), place3.end());
-                            printVector<int>(place3);
-                            break;
-                        }
-                    }
+                    place2.erase(std::remove(place2.begin(), place2.end(), target_cube_num[i]), place2.end()); //删除place2中的目标
+                    state=1;
+                    printVector<int>(place2);
+                    break;
+                }
+                else if(std::find(place3.begin(), place3.end(), target_cube_num[i]) != place3.end())
+                {
+                    place3.erase(std::remove(place3.begin(), place3.end(), target_cube_num[i]), place3.end()); //删除place3中的目标
+                    state=2;
+                    printVector<int>(place3);
+                    break;
                 }
             }
+                if(i>=3)
+                {
+                    state=0;
+                    first_find=true;
+                }
         }
+        
         switch (state)
         {
         case 0:
@@ -289,8 +305,16 @@ int main(int argc, char** argv) {
                 if(goal_reached)
                 {
                     state++;
-                    find_three_state=false;
                     goal_reached=false;
+                    first_find=false;
+                }
+            }
+            break;
+        case 3:
+            {
+                if(find_three_state==true)
+                {
+                    state=0;
                 }
             }
             break;
@@ -299,10 +323,11 @@ int main(int argc, char** argv) {
         }
         std_msgs::Int32 position_state;
         position_state.data=state;
+
         position_set_pub.publish(position_state);
         ros::spinOnce();
         loop_rate.sleep();        
     }
-    
+ 
     return 0;
 }

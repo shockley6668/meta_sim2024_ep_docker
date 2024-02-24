@@ -205,6 +205,18 @@ public:
                     reset_arm();
                     ros::Duration(0.8).sleep();
                     sendBaseVel(0,0,0);
+                    move_base_msgs::MoveBaseGoal goal_msg;
+                    goal_msg.target_pose.header.frame_id = "map";
+                    goal_msg.target_pose.header.stamp = ros::Time::now();
+                    goal_msg.target_pose.pose.position.x = 1.18;
+                    goal_msg.target_pose.pose.position.y = 1.78;
+                    tf::Quaternion q=tf::createQuaternionFromYaw(0.0);
+                     goal_msg.target_pose.pose.orientation.w = q.w();
+                    goal_msg.target_pose.pose.orientation.x = q.x();
+                    goal_msg.target_pose.pose.orientation.y = q.y();
+                    goal_msg.target_pose.pose.orientation.z = q.z();
+                    action_client_->sendGoal(goal_msg);
+                    ros::Duration(2).sleep();
                     return BT::NodeStatus::SUCCESS;
                 }
                 
