@@ -211,7 +211,7 @@ public:
         {
             no_need_block_time++;
         }
-        if(no_need_block_time>30)
+        if(no_need_block_time>10)
         {
             tag_detection_status_sub.shutdown();
             cout<<"No need block"<<endl;

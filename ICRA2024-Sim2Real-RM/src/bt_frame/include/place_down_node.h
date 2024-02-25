@@ -40,6 +40,7 @@ public:
     {
         return {
             BT::InputPort<int>("target_cube_num2"),
+            BT::InputPort<int>("arm_high"),
         };
     }
 
@@ -96,7 +97,21 @@ public:
         //     aim_tag_id=8;
         // }
         nav_done=false;
-
+        try
+        {
+            auto resh=getInput<int>("arm_high");
+            if( !resh )
+            {
+                arm_high=0;
+            }
+            arm_high=resh.value();
+        }
+        catch(const std::exception& e)
+        {
+            arm_high=0;
+        }
+        
+        
         std::cout<<"take_cube_num:"<<take_cube_num<<std::endl;
         std::cout<<"aimtagid:"<<aim_tag_id<<std::endl;
         return BT::NodeStatus::RUNNING;
@@ -187,7 +202,7 @@ public:
             if(first_tag)
             {
                 std::cout<<"aim_id"<<aim_tag.id[0]<<std::endl;
-                float target_x=watchboard_pose.pose.position.x-0.3;
+                float target_x=watchboard_pose.pose.position.x-0.28;
                 std::cout<<"target_x"<<target_x<<std::endl;
                 if(abs(target_x-robot_gobal_pose_.pose.position.x)>0.005)
                 {
@@ -203,38 +218,11 @@ public:
                     ros::Duration(1).sleep();
                     open_gripper();
                     ros::Duration(1).sleep();
-                    sendBaseVel(-0.3,0,0);
+                    sendBaseVel(-0.2,0,0);
                     reset_arm();
-                    ros::Duration(1.5).sleep();
-                    sendBaseVel(0,0,0);
                     ros::Duration(1).sleep();
-                    apriltag_ros::AprilTagDetectionArray temp;
-                    temp=tag_msg;
-                    std::sort(temp.detections.begin(), temp.detections.end(), 
-                    [](const apriltag_ros::AprilTagDetection& det1, const apriltag_ros::AprilTagDetection& det2) {
-                        return det1.pose.pose.pose.position.y < det2.pose.pose.pose.position.y;
-                    });
-                    for(size_t i=0; i<temp.detections.size();i++)
-                    {
-                        std::cout<<"temp_y"<<temp.detections[i].pose.pose.pose.position.y<<std::endl;
-                    }
-                    if(temp.detections[0].pose.pose.pose.position.y<-0.02)
-                    {
-                        arm_high=0;
-                    }
-                    if(temp.detections[0].pose.pose.pose.position.y<-0.03)
-                    {
-                        arm_high=1;
-                    }
-                    if(temp.detections[0].pose.pose.pose.position.y<-0.11)
-                    {
-                        arm_high=2;
-                    }
-                    if(temp.detections[0].pose.pose.pose.position.y<-0.16)
-                    {
-                        arm_high=3;
-                    }
-                    std::cout<<"arm_high"<<arm_high<<std::endl;
+                    sendBaseVel(0,0,0);
+                    
                     return BT::NodeStatus::SUCCESS;
                 }
 
@@ -268,6 +256,7 @@ private:
     void place_arm()
     {
         geometry_msgs::Pose arm_position;
+        std::cout<<"arm_high:"<<arm_high<<std::endl;
         if(arm_high==0)
         {
             arm_position.position.x = 0.18;

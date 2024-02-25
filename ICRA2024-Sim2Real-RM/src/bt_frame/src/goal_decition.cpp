@@ -264,8 +264,8 @@ int main(int argc, char** argv) {
                 bt_frame::ep_goal goal;
                 simple_planner::change_point_num ch_t;
                 ch_t.request.point_num=5;
-                float arrx[5]={1.0,1.55,2.0,2.0,1.86};
-                float arry[5]={1.0,1.0,1.0,0.6,-0.1};
+                float arrx[5]={1.0,1.55,2.0,2.0,1.93};
+                float arry[5]={1.0,1.0,1.0,0.6,-0.12};
                 goal.type=1;
                 // if(change_point_client.call(ch_t))
                 // {

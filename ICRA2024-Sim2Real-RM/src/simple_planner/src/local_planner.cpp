@@ -45,7 +45,16 @@ namespace robomaster{
             double i_out = ki_ * integral_;
             double d_out = kd_ * (error - prev_error_);
             prev_error_ = error;
-            return p_out + i_out + d_out;
+            double output=p_out + i_out + d_out;
+            if(output<0.1&&output>0)
+            {
+                output = 0.1;
+            }
+            else if(output>-0.1&&output<0)
+            {
+                output = -0.1;
+            }
+            return output;
     }
 
     private:
@@ -58,7 +67,7 @@ namespace robomaster{
         PIDController controller_x;
         PIDController controller_y;
         PIDController controller_w;
-        LocalPlanner(ros::NodeHandle& given_nh):nh(given_nh),plan_(false), prune_index_(0),target_yaw(0),controller_x(7,0.01,0.1),controller_y(7,0.01,0.1),controller_w(2.5,0.0,0){
+        LocalPlanner(ros::NodeHandle& given_nh):nh(given_nh),plan_(false), prune_index_(0),target_yaw(0),controller_x(6,0.02,0.0),controller_y(6,0.02,0.0),controller_w(3,0.03,0.0){
 
            
             nh.param<double>("max_speed", max_speed_, 2.0);
@@ -67,7 +76,7 @@ namespace robomaster{
             max_angle_diff_ = max_angle_diff * M_PI / 180;
             nh.param<double>("p_coeff", p_coeff_, 10.0);
             nh.param<int>("plan_frequency", plan_freq_, 50);
-            nh.param<double>("goal_tolerance", goal_tolerance_, 0.1);
+            nh.param<double>("goal_tolerance", goal_tolerance_, 0.05);
             nh.param<double>("prune_ahead_distance", prune_ahead_dist_, 0.1);
             nh.param<std::string>("global_frame", global_frame_, "odom");
             diff_yaw=0;
@@ -136,7 +145,7 @@ namespace robomaster{
                     && prune_index_ == global_path_.poses.size() - 1){
                     xy_done=true;
                 }
-                if(xy_done&&abs(diff_yaw)<0.1)
+                if(xy_done&&abs(diff_yaw)<0.06)
                 {
                     plan_=false;
                     geometry_msgs::Twist cmd_vel;
@@ -263,11 +272,15 @@ namespace robomaster{
             cmd_vel.linear.x=-controller_x.calculate(0,diff_x);
             cmd_vel.linear.y=-controller_y.calculate(0,diff_y);
             cmd_vel.angular.z=-controller_w.calculate(0,diff_yaw);
-            if(abs(diff_yaw)<0.1)
+            if(abs(diff_yaw)<0.06)
             {
                 cmd_vel.angular.z=0;        
             }
-            
+            if(xy_done)
+            {
+                cmd_vel.linear.x=0;
+                cmd_vel.linear.y=0;
+            }
             //std::cout<<"diff_yaw:"<<diff_yaw<<std::endl;
             //速度限幅
             velocitylimit(cmd_vel.linear.x,3);

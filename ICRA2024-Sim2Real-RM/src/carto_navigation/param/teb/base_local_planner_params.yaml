@@ -31,7 +31,7 @@ TebLocalPlannerROS:
     vertices: [[-0.16, -0.12], [-0.16, 0.12], [0.16, 0.12], [0.16, -0.12]] # 2D shape of the robot
 
   # GoalTolerance    
-  xy_goal_tolerance: 0.15
+  xy_goal_tolerance: 0.06
   yaw_goal_tolerance: 0.06
   free_goal_vel: True
     

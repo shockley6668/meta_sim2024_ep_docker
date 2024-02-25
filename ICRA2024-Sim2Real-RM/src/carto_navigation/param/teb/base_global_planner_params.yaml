@@ -6,10 +6,10 @@ GlobalPlanner:
   use_quadratic: true
   use_grid_path: false
   old_navfn_behavior: false
-
-  lethal_cost: 240
+  lethal_cost: 253
   neutral_cost: 50
-  cost_factor: 0.55
+  cost_factor: 3
   publish_potential: true
-  orientation_mode: 0
-  orientation_window_size: 1
+  orientation_mode: 2
+  orientation_window_size: 5
+  outline_map: false

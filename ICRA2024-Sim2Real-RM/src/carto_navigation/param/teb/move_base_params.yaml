@@ -17,7 +17,32 @@ oscillation_timeout: 3.0 # 10.0
 #recovery恢复有效移动距离
 oscillation_distance: 0.1
 
-recovery_behavior_enabled: false
-recovery_behaviors: [{name: conservative_reset, type: clear_costmap_recovery/ClearCostmapRecovery}, {name: rotate_recovery, type: rotate_recovery/RotateRecovery}, {name: aggressive_reset, type: clear_costmap_recovery/ClearCostmapRecovery}] #default
-conservative_reset_dist: 3.0
+# recovery_behaviors
+# 恢复行为，name是官方状态转移图中各节点，type为具体对应动作
+recovery_behaviors:
+  - name: 'conservative_reset'
+    type: 'clear_costmap_recovery/ClearCostmapRecovery'
+  #- name: 'aggressive_reset'
+  #  type: 'clear_costmap_recovery/ClearCostmapRecovery'
+  - name: 'clearing_rotation'
+    type: 'rotate_recovery/RotateRecovery'
+  #- name: 'move_slow_and_clear'
+    #type: 'move_slow_and_clear/MoveSlowAndClear'
 
+# 0. 保守复位
+conservative_reset:
+  reset_distance: 1.0
+  #layer_names: [static_layer, obstacle_layer, inflation_layer]
+  layer_names: [obstacle_layer]
+
+# 1. 激进复位
+aggressive_reset:
+  reset_distance: 3.0
+  #layer_names: [static_layer, obstacle_layer, inflation_layer]
+  layer_names: [obstacle_layer]
+
+move_slow_and_clear:
+  clearing_distance: 0.5
+  limited_trans_speed: 0.1
+  limited_rot_speed: 0.4
+  limited_distance: 0.3

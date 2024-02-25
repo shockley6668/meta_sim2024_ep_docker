@@ -3,7 +3,10 @@
 #include "bt_frame/ep_goal.h"
 #include "behaviortree_cpp/bt_factory.h"
 #include "std_msgs/Int32.h"
-
+#include "std_srvs/Empty.h"
+#include <actionlib/client/simple_action_client.h>
+#include <move_base_msgs/MoveBaseAction.h>
+#include <geometry_msgs/Twist.h>
 using namespace BT;
 class SimplePlanner:public StatefulActionNode
 {
@@ -12,8 +15,9 @@ public:
     StatefulActionNode(name, config),node_(Handle){
         goal_sub_=node_.subscribe("/ep_next_goal", 1, &SimplePlanner::goalCallback,this);
         goal_status_pubs_=node_.advertise<std_msgs::Int32>("ep_goal_status", 1);
-        goal_status_sub_ = node_.subscribe("/cmd_vel", 2, &SimplePlanner::goalStatusCallback, this);
+        cmd_vel_pub_=node_.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
         goal_pub_ = node_.advertise<geometry_msgs::PointStamped>("/clicked_point", 6);
+        move_base_clear = node_.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
         goal_received=false;
         goal_reached=false;
         move_base_send=false;
@@ -26,6 +30,7 @@ public:
     }
     NodeStatus onStart() override
     {
+        goal_status_sub_ = node_.subscribe("/cmd_vel", 2, &SimplePlanner::goalStatusCallback, this);
         goal_received=false;
         goal_reached=false;
         move_base_send=false;
@@ -55,7 +60,7 @@ public:
                     move_base_send=true;
                 }
                 else{
-                    std::cout<<action_client_->getState().toString()<<std::endl;
+                    
                     if (action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
                     {
                         std::cout<<"move base Goal reached"<<std::endl;
@@ -63,8 +68,19 @@ public:
                     }
                     if(action_client_->getState() == actionlib::SimpleClientGoalState::ABORTED)
                     {
+                        //clear costmap
+                        std_srvs::Empty srv;
+                        move_base_clear.call(srv);
+                        geometry_msgs::Twist recover;
+                        recover.linear.x=0.1;
+                        cmd_vel_pub_.publish(recover);
+                        ros::Duration(0.4).sleep();
+                        recover.linear.x=0;
+                        cmd_vel_pub_.publish(recover);
+                        std::cout<<"move base Goal aborted"<<std::endl;
                         move_base_send=false;
                     }
+                    
                 }
                 
 
@@ -100,6 +116,7 @@ public:
                     goal_status_pubs_.publish(msg);
                 }
                 std::cout<<"fuck reached"<<std::endl;
+                goal_status_sub_.shutdown();
                 return BT::NodeStatus::SUCCESS;
             }
         }
@@ -135,7 +152,8 @@ private:
     ros::Publisher goal_pub_;
     ros::Subscriber goal_status_sub_;
     ros::Publisher goal_status_pubs_;
-    
+    ros::ServiceClient move_base_clear;
+    ros::Publisher cmd_vel_pub_;
     bool goal_received=false;
     bool goal_reached=false;
 

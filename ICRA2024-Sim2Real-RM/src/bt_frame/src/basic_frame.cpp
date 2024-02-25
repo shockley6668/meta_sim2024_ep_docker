@@ -11,6 +11,7 @@
 #include "place_node.h"
 #include "take_up_node.h"
 #include "place_down_node.h"
+#include "check_up_done.h"
 using namespace BT;
 using namespace std;
 namespace chr = std::chrono;
@@ -102,8 +103,8 @@ static const char* xml_text = R"(
                 <Sequence>
                     <SimplePlanner name="simple_planner"/>
                     <Take_Up name="take up"/>
-                    <Place_Down name="Place down" target_cube_num2="{target_cube_num2}"/>
-                    <CheckDone name="check_done"/>
+                    <Place_Down name="Place down" target_cube_num2="{target_cube_num2}" arm_high="{arm_high}"/>
+                    <Check_up_done name="Check_up_done" arm_high="{arm_high}"/>
                 </Sequence>
             </RetryUntilSuccessful>
             <Stop name="stop" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}"/>
@@ -183,6 +184,7 @@ int main(int argc, char **argv)
     RosBuilder<Place>(factory,"Place",nh);
     RosBuilder<Place_Down>(factory,"Place_Down",nh);
     RosBuilder<Check_done>(factory,"CheckDone",nh);
+    RosBuilder<Check_up_done>(factory,"Check_up_done",nh);
     factory.registerNodeType<Stop>("Stop");
     // factory.registerNodeType<Check_done>("CheckDone");
     //factory.registerNodeType<Goal>("Goal");
