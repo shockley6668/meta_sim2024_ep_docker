@@ -11,6 +11,7 @@ public:
     Check_up_done(ros::NodeHandle& Handle, const std::string& name, const NodeConfig& config):StatefulActionNode(name, config)
     {
         nh = Handle;
+        taking_tag_id_pub = nh.advertise<std_msgs::Int32>("taking_tag_id", 10);
     }
     static PortsList providedPorts()
     {
@@ -76,6 +77,9 @@ private:
             {
                 t = msg->detections[i];
             }
+            std_msgs::Int32 tag;
+            tag.data = msg->detections[i].id[0];
+            taking_tag_id_pub.publish(tag);
         }
         highest_tag = t;
     }
@@ -84,6 +88,7 @@ private:
     tf::StampedTransform cam_to_map;
     std::shared_ptr<tf::TransformListener> tf_listener_;
     apriltag_ros::AprilTagDetection highest_tag;
+    ros::Publisher taking_tag_id_pub;
     int fal_limit = 0;
     int count;
 };

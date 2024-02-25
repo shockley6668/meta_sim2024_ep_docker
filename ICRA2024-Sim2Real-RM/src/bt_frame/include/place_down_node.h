@@ -130,6 +130,9 @@ public:
         else if(nav_done==false&&action_client_->getState() == actionlib::SimpleClientGoalState::ABORTED)
         {
             std::cout<<"nav failed"<<std::endl;
+            sendBaseVel(0.2,0,0);
+            ros::Duration(0.4).sleep();
+            sendBaseVel(0,0,0);
             move_base_msgs::MoveBaseGoal goal_msg;
             goal_msg.target_pose.header.frame_id = "map";
             goal_msg.target_pose.header.stamp = ros::Time::now();

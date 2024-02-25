@@ -136,7 +136,7 @@ void tagCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr & msg)
         dist[1] = pow(tag_map_pose.pose.position.x - 1.86, 2) + pow(tag_map_pose.pose.position.y + 0.1, 2);
         dist[2] = pow(tag_map_pose.pose.position.x - 1.3, 2) + pow(tag_map_pose.pose.position.y - 2.9, 2);
         dist[3] = pow(tag_map_pose.pose.position.x - 1.4, 2) + pow(tag_map_pose.pose.position.y - 1.7, 2);
-        std::cout << it.id[0] << " dist: " << dist[0] << " " << dist[1] << " " << dist[2] << " " << dist[3] << std::endl;
+        // std::cout << it.id[0] << " dist: " << dist[0] << " " << dist[1] << " " << dist[2] << " " << dist[3] << std::endl;
         int index = 0, min = dist[0];
         for(int i = 0; i < 4; i++)
         {
@@ -264,7 +264,7 @@ void printVector(const vector<T> v)
     }
     cout << endl;
 }
-
+bool finish_update = false;
 int main(int argc, char** argv) {
     ros::init(argc, argv, "goal_decition_node");
     ros::NodeHandle nh;
@@ -277,7 +277,7 @@ int main(int argc, char** argv) {
     ros::Subscriber no_move_sub=nh.subscribe("no_move",10,no_move_callback);
     ros::Subscriber target_num_sub=nh.subscribe<std_msgs::Int32MultiArray>("target_cube_num",10,target_num_callback);
     ros::Publisher position_set_pub = nh.advertise<std_msgs::Int32>("position_state", 10);
-    ros::Publisher tar_tag = nh.advertise<std_msgs::Int32>("tar_tag", 10);
+    // ros::Publisher tar_tag = nh.advertise<std_msgs::Int32>("tar_tag", 10);
     ros::Subscriber taking_tag_sub = nh.subscribe<std_msgs::Int32>("taking_tag_id", 10, [&](const std_msgs::Int32::ConstPtr &msg){
         std::cout << "now taking tag: " << msg->data << std::endl;
         for(int i = 0;i < place1.size();i++)
@@ -291,6 +291,7 @@ int main(int argc, char** argv) {
                     {
                         fns = true;
                     }
+                finish_update = true;
                 if(!fns)
                     finish.push_back(msg->data);
                 return;
@@ -306,6 +307,7 @@ int main(int argc, char** argv) {
                     {
                         fns = true;
                     }
+                finish_update = true;
                 if(!fns)
                     finish.push_back(msg->data);
                 return;
@@ -321,6 +323,7 @@ int main(int argc, char** argv) {
                     {
                         fns = true;
                     }
+                finish_update = true;
                 if(!fns)
                     finish.push_back(msg->data);
                 return;
@@ -341,6 +344,7 @@ int main(int argc, char** argv) {
     loop_rate.sleep();
     while (ros::ok())
     {
+        finish_update = false;
         GetGlobalRobotPose(tf_listener_, "map", robot_gobal_pose_);
         if(find_three_state && first_find)
         {
@@ -352,7 +356,7 @@ int main(int argc, char** argv) {
             //according to placex and poses to search target block
             std::cout << "not first_find and find_three_state" << std::endl;
             bool found = false;
-            for(int i = 0;i < 3;i++)
+                for(int i = 0;i < 3;i++)
             {
                 if(std::find(place1.begin(), place1.end(), target_cube_num[i]) != place1.end())
                 {
@@ -385,7 +389,7 @@ int main(int argc, char** argv) {
                     }
                     break;
                 }
-                if(std::find(place2.begin(), place2.end(), target_cube_num[i]) != place2.end())
+                else if(std::find(place2.begin(), place2.end(), target_cube_num[i]) != place2.end())
                 {
                     found = true;
                     std::cout << "target block id : " << target_cube_num[i] << " found in place2" << std::endl;
@@ -416,7 +420,7 @@ int main(int argc, char** argv) {
                     }
                     break;
                 }
-                if(std::find(place3.begin(), place3.end(), target_cube_num[i]) != place3.end())
+                else if(std::find(place3.begin(), place3.end(), target_cube_num[i]) != place3.end())
                 {
                     found = true;
                     std::cout << "target block id : " << target_cube_num[i] << " found in place3" << std::endl;
@@ -447,12 +451,16 @@ int main(int argc, char** argv) {
                     }
                     break;
                 }
+                else
+                {
+                    ROS_ERROR("can not find target block");
+                }
             }
         }
-        else if(!first_find && !find_three_state & goal_reached)
+        else if(!first_find && !find_three_state)
         {
             //according to placex and poses to arrange path
-            std::cout << "not first_find and not find_three_state" << std::endl;
+                std::cout << "not first_find and not find_three_state" << std::endl;
             // bool found = false;
             for(int i = 0;i < 3;i++)
             {
@@ -460,19 +468,29 @@ int main(int argc, char** argv) {
                 int j = 0;
                 for(j = 0;j < place1.size();j++)
                     if(place1[j] != -1)
+                    {
                         found[0] = true;
+                        break;
+                    }
                 if(j == place1.size())
                     found[0] = false;
                 for(j = 0;j < place2.size();j++)
                     if(place2[j] != -1)
+                    {
                         found[1] = true;
+                        break;
+                    }
                 if(j == place2.size())
                     found[1] = false;
                 for(int j = 0;j < place3.size();j++)
                     if(place3[j] != -1)
+                    {
                         found[2] = true;
+                        break;
+                    }
                 if(j == place3.size())  
                     found[2] = false;
+                std::cout << "three status : " << found[0] << " " << found[1] << " " << found[2] << std::endl;
                 if(found[0])
                 {
                     int tag_id;
@@ -481,12 +499,12 @@ int main(int argc, char** argv) {
                         {
                             tag_id = place1[i];
                             // place1[i] = -1;
-                            finish.push_back(tag_id);
+                            // finish.push_back(tag_id);
                             break;
                         }
-                    std::cout << "tag_id: " << tag_id << " found in place1" << std::endl;
-                    std_msgs::Int32 tag;
-                    tag.data = tag_id;
+                    // std::cout << "tag_id: " << tag_id << " found in place1" << std::endl;
+                    // std_msgs::Int32 tag;
+                    // tag.data = tag_id;
                     // place1.erase(place1.begin());
                     if(poses[tag_id].pose.position.x == 0 && poses[tag_id].pose.position.y == 0)
                     {
@@ -507,10 +525,10 @@ int main(int argc, char** argv) {
                         state = -1;
                         std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
                     }
-                    tar_tag.publish(tag);
+                    // tar_tag.publish(tag);
                     break;
                 }
-                if(found[1])
+                else if(found[1])
                 {
                     int tag_id;
                     for(int i = 0;i < place2.size();i++)
@@ -518,13 +536,13 @@ int main(int argc, char** argv) {
                         {
                             tag_id = place2[i];
                             // place2[i] = -1;
-                            finish.push_back(tag_id);
+                            // finish.push_back(tag_id);
                             break;
                         }
-                    std::cout << "tag_id: " << tag_id << " found in place2" << std::endl;
-                    std_msgs::Int32 tag;
-                    tag.data = tag_id;
-                    tar_tag.publish(tag);
+                    // std::cout << "tag_id: " << tag_id << " found in place2" << std::endl;
+                    // std_msgs::Int32 tag;
+                    // tag.data = tag_id;
+                    // tar_tag.publish(tag);
                     // place2.erase(place2.begin());
                     if(poses[tag_id].pose.position.x == 0 && poses[tag_id].pose.position.y == 0)
                     {
@@ -547,7 +565,7 @@ int main(int argc, char** argv) {
                     }
                     break;
                 }
-                if(found[2])     
+                else if(found[2])     
                 {
                     int tag_id;
                     for(int i = 0;i < place3.size();i++)
@@ -555,13 +573,13 @@ int main(int argc, char** argv) {
                         {
                             tag_id = place3[i];
                             // place3[i] = -1;
-                            finish.push_back(tag_id);
+                            // finish.push_back(tag_id);
                             break;
                         }
-                    std::cout << "tag_id: " << tag_id << " found in place3" << std::endl;
-                    std_msgs::Int32 tag;
-                    tag.data = tag_id;
-                    tar_tag.publish(tag);
+                    // std::cout << "tag_id: " << tag_id << " found in place3" << std::endl;
+                    // std_msgs::Int32 tag;
+                    // tag.data = tag_id;
+                    // tar_tag.publish(tag);
                     // place3.erase(place3.begin());
                     if(poses[tag_id].pose.position.x == 0 && poses[tag_id].pose.position.y == 0)
                     {
@@ -624,7 +642,7 @@ int main(int argc, char** argv) {
                 //     std::cout<<"change point num to"<<ch_t.request.point_num<<std::endl;
                 //     for (int i=0;i<5;i++) {
                 //     geometry_msgs::PointStamped point_t;
-                //     point_t.point.x=arrx[i];
+                //     point_t.pointros.x=arrx[i];
                 //     point_t.point.y=arry[i];
                 //     goal.points.push_back(point_t);    
                 //     }

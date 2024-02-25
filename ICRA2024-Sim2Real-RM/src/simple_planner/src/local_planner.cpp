@@ -67,7 +67,7 @@ namespace robomaster{
         PIDController controller_x;
         PIDController controller_y;
         PIDController controller_w;
-        LocalPlanner(ros::NodeHandle& given_nh):nh(given_nh),plan_(false), prune_index_(0),target_yaw(0),controller_x(6,0.02,0.0),controller_y(6,0.02,0.0),controller_w(3,0.03,0.0){
+        LocalPlanner(ros::NodeHandle& given_nh):nh(given_nh),plan_(false), prune_index_(0),target_yaw(0),controller_x(6,0.01,0.0),controller_y(6,0.01,0.0),controller_w(3,0.03,0.0){
 
            
             nh.param<double>("max_speed", max_speed_, 2.0);
@@ -91,7 +91,7 @@ namespace robomaster{
             target_yaw_sub_ = nh.subscribe("/target_yaw", 5, &LocalPlanner::TargetYawCallback,this);
 
             plan_timer_ = nh.createTimer(ros::Duration(1.0/plan_freq_),&LocalPlanner::Plan,this);
-
+            
 
 
         }
@@ -102,6 +102,7 @@ namespace robomaster{
                 prune_index_ = 0;
                 plan_ = true;
                 xy_done = false;
+                yaw_done = false;
             }
         }
     private:
@@ -145,7 +146,7 @@ namespace robomaster{
                     && prune_index_ == global_path_.poses.size() - 1){
                     xy_done=true;
                 }
-                if(xy_done&&abs(diff_yaw)<0.06)
+                if(xy_done&&yaw_done)
                 {
                     plan_=false;
                     geometry_msgs::Twist cmd_vel;
@@ -274,7 +275,8 @@ namespace robomaster{
             cmd_vel.angular.z=-controller_w.calculate(0,diff_yaw);
             if(abs(diff_yaw)<0.06)
             {
-                cmd_vel.angular.z=0;        
+                cmd_vel.angular.z=0;
+                yaw_done=true;    
             }
             if(xy_done)
             {
@@ -342,7 +344,7 @@ namespace robomaster{
 
         bool plan_;
         bool xy_done;
-
+        bool yaw_done;
         int prune_index_;
         nav_msgs::Path global_path_;
 
