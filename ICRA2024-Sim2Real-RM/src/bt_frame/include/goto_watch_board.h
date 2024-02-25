@@ -123,7 +123,6 @@ public:
     }
     NodeStatus onRunning() override
     {
-        
         if(reached_flag&&target_cube_num.size()==3){
             //reached_flag=false;
             for (size_t i = 0; i < target_cube_num.size(); i++)

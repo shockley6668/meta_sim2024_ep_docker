@@ -25,7 +25,6 @@ public:
             InputPort<int>("target_cube_num1"),
             InputPort<int>("target_cube_num2"),
             InputPort<int>("target_cube_num3")
-
         };
     }
     NodeStatus onStart() override
@@ -96,14 +95,14 @@ static const char* xml_text = R"(
                     <SimplePlanner name="simple_planner"/>
                     <Take name="take" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}" takeing_cube_num="{takeing_cube_num}"/>
                     <Place name="place" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}" takeing_cube_num="{takeing_cube_num}"/>
-                    <CheckDone name="check_done"/>
+                    <CheckDone name="check_done" target_cube_num1="{target_cube_num1}" target_cube_num2="{target_cube_num2}" target_cube_num3="{target_cube_num3}"/>
                 </Sequence>
             </RetryUntilSuccessful>
             <RetryUntilSuccessful num_attempts="100">
                 <Sequence>
                     <SimplePlanner name="simple_planner"/>
                     <Take_Up name="take up"/>
-                    <Place_Down name="Place down"/>
+                    <Place_Down name="Place down" target_cube_num2="{target_cube_num2}"/>
                     <CheckDone name="check_done"/>
                 </Sequence>
             </RetryUntilSuccessful>
@@ -174,8 +173,9 @@ int main(int argc, char **argv)
     RosBuilder<Take_Up>(factory, "Take_Up",nh);
     RosBuilder<Place>(factory,"Place",nh);
     RosBuilder<Place_Down>(factory,"Place_Down",nh);
+    RosBuilder<Check_done>(factory,"CheckDone",nh);
     factory.registerNodeType<Stop>("Stop");
-    factory.registerNodeType<Check_done>("CheckDone");
+    // factory.registerNodeType<Check_done>("CheckDone");
     //factory.registerNodeType<Goal>("Goal");
     // factory.registerNodeType<SimplePlanner>("SimplePlanner");
     //factory.registerNodeType<Observe>("Observe");
@@ -211,7 +211,7 @@ int main(int argc, char **argv)
     while( ros::ok() && (status == NodeStatus::IDLE || status == NodeStatus::RUNNING))
     {
         ros::spinOnce();
-        //std::cout << "Start" << std::endl;
+        // std::cout << "Start" << std::endl;
         tree.tickOnce();
         //tree.sleep(std::chrono::milliseconds(100));
         loop_rate.sleep();
