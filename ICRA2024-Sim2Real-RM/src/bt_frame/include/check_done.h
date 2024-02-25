@@ -12,6 +12,7 @@ public:
         nh = Handle;
         place_fns = false;
         check_done_pub=nh.advertise<std_msgs::Int32>("/check_done", 10);
+        taking_tag_id_pub = nh.advertise<std_msgs::Int32>("taking_tag_id", 10);
     }
     static PortsList providedPorts()
     {
@@ -80,18 +81,27 @@ private:
                 if(tagId1 == tag.id[0])
                 {
                     one_ready = true;
+                    std_msgs::Int32 tag;
+                    tag.data = tagId1.value();
+                    taking_tag_id_pub.publish(tag);
                     std::cout << "1\n";
                     count++;
                 }
                 if(tagId2 == tag.id[0])
                 {
                     two_ready = true;
+                    std_msgs::Int32 tag;
+                    tag.data = tagId2.value();
+                    taking_tag_id_pub.publish(tag);
                     std::cout << "2\n";
                     count++;
                 }
                 if(tagId3 == tag.id[0])
                 {
                     three_ready = true;
+                    std_msgs::Int32 tag;
+                    tag.data = tagId3.value();
+                    taking_tag_id_pub.publish(tag);
                     std::cout << "3\n";
                     count++;
                 }
@@ -109,6 +119,7 @@ private:
     ros::Subscriber tag_sub;
     ros::Publisher check_done_pub;
     apriltag_ros::AprilTagDetectionArray tag_msg;
+    ros::Publisher taking_tag_id_pub;
     int fal_limit = 0;
     bool place_fns;
     int count;

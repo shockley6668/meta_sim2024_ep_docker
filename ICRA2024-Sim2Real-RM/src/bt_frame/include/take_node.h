@@ -37,6 +37,7 @@ public:
         tf_listener_ = std::make_shared<tf::TransformListener>();
         take_node_state=0;
         target_cube_num_pub=node_.advertise<std_msgs::Int32MultiArray>("target_cube_num", 10);
+        taking_tag_id_pub = node_.advertise<std_msgs::Int32>("taking_tag_id", 10);
 
     }
     void reset_arm()
@@ -297,6 +298,11 @@ public:
                 open_gripper();
                 ros::Duration(0.7).sleep();
                 setOutput<int>("takeing_cube_num",tag_id);
+                std_msgs::Int32 taking_tag_id;
+                taking_tag_id.data=tag_id;
+                std::cout << "now taking tag id: " << tag_id << std::endl;
+                // taking_tag_id_pub.publish(taking_tag_id);
+                std::cout<<"taking_tag_id: "<<tag_id<<std::endl;
                 geometry_msgs::Pose arm_position;
                 arm_position.position.x = 0.19;
                 arm_position.position.y = -0.08;
@@ -394,6 +400,11 @@ public:
                 open_gripper();
                 ros::Duration(0.7).sleep();
                 setOutput<int>("takeing_cube_num",tag_id);
+                std_msgs::Int32 taking_tag_id;
+                taking_tag_id.data=tag_id;
+                std::cout << "now taking tag id: " << tag_id << std::endl;
+                // taking_tag_id_pub.publish(taking_tag_id);
+                std::cout<<"taking_tag_id: "<<tag_id<<std::endl;
                 geometry_msgs::Pose arm_position;
                 arm_position.position.x = 0.19;
                 arm_position.position.y = -0.08;
@@ -437,6 +448,7 @@ private:
     ros::Publisher arm_position_pub;
     ros::Publisher no_move_pub;
     ros::Publisher target_cube_num_pub;
+    ros::Publisher taking_tag_id_pub;
     ros::Subscriber position_state_sub;
     geometry_msgs::PoseStamped target_tag_map_pose;
     int tag_id;

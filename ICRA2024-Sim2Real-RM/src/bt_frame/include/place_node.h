@@ -203,7 +203,6 @@ public:
             
         }
 
-
         if(y_done==true)
         {
             GetGlobalRobotPose(tf_listener_, "map", robot_gobal_pose_);

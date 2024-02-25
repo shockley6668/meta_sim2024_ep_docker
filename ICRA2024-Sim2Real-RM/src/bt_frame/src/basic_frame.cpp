@@ -222,7 +222,7 @@ int main(int argc, char **argv)
     while( ros::ok() && (status == NodeStatus::IDLE || status == NodeStatus::RUNNING))
     {
         ros::spinOnce();
-        //std::cout << "Start" << std::endl;
+        // std::cout << "Start" << std::endl;
         tree.tickOnce();
         //tree.sleep(std::chrono::milliseconds(100));
         loop_rate.sleep();

@@ -37,7 +37,6 @@ public:
         tf_listener_ = std::make_shared<tf::TransformListener>();
         take_node_state=0;
         target_cube_num_pub=node_.advertise<std_msgs::Int32MultiArray>("target_cube_num", 10);
-
     }
     void reset_arm()
     {
@@ -99,6 +98,10 @@ public:
         {
             difilute_position = false;
         }
+    }
+    void tartagCallback(const std_msgs::Int32::ConstPtr & msg)
+    {
+        tag_id = msg->data;
     }
 
     void poseCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr & msg)
@@ -186,6 +189,7 @@ public:
 
         tag_detection_status_sub = node_.subscribe("/tag_detections", 10, &Take_Up::poseCallback, this);
         position_state_sub=node_.subscribe("/position_state", 10, &Take_Up::positionStateCallback, this);
+        tar_tag_sub = node_.subscribe("tar_tag", 10, &Take_Up::tartagCallback, this);
 
         target_tag_map_pose.header.frame_id = "none";
         tag_id = -1;
@@ -435,6 +439,7 @@ private:
     ros::Publisher no_move_pub;
     ros::Publisher target_cube_num_pub;
     ros::Subscriber position_state_sub;
+    ros::Subscriber tar_tag_sub;
     geometry_msgs::PoseStamped target_tag_map_pose;
     int tag_id;
     int take_node_state;
