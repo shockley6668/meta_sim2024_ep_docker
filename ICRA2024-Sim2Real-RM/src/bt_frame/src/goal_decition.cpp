@@ -448,11 +448,6 @@ int main(int argc, char** argv) {
                     break;
                 }
             }
-                if(i>=3)
-                {
-                    state=0;
-                    first_find=true;
-                }
         }
         else if(!first_find && !find_three_state & goal_reached)
         {
@@ -725,5 +720,6 @@ int main(int argc, char** argv) {
         ros::spinOnce();
         loop_rate.sleep();        
     }
+
     return 0;
 }
