@@ -698,7 +698,7 @@ int main(int argc, char** argv) {
                     else if(state == 1)
                         state = 2;
                     else if(state == 2)
-                        state = 0;./s
+                        state = 0;
                     else if(state == 3)
                         state = 0;
                     else if(state == -1)

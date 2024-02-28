@@ -249,7 +249,7 @@ public:
                     ros::Duration(1).sleep();
                     sendBaseVel(-0.2,0,0);
                     reset_arm();
-                    ros::Duration(1).sleep();
+                    ros::Duration(1.2).sleep();
                     sendBaseVel(0,0,0);
                     
                     return BT::NodeStatus::SUCCESS;
