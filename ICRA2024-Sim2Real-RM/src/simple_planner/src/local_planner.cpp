@@ -73,7 +73,7 @@ namespace robomaster{
         PIDController controller_x;
         PIDController controller_y;
         PIDController controller_w;
-        LocalPlanner(ros::NodeHandle& given_nh):nh(given_nh),plan_(false), prune_index_(0),target_yaw(0),controller_x(6,0.01,0.0),controller_y(6,0.01,0.0),controller_w(0.2,0.5,1000){
+        LocalPlanner(ros::NodeHandle& given_nh):nh(given_nh),plan_(false), prune_index_(0),target_yaw(0),controller_x(6,0.01,0.0),controller_y(6,0.01,0.0),controller_w(0.1,0.5,1000){
 
            
             nh.param<double>("max_speed", max_speed_, 2.0);

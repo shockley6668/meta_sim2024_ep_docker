@@ -34,8 +34,8 @@ public:
         move_base_msgs::MoveBaseGoal goal_msg;
         goal_msg.target_pose.header.frame_id = "map";
         goal_msg.target_pose.header.stamp = ros::Time::now();
-        goal_msg.target_pose.pose.position.x = 0;
-        goal_msg.target_pose.pose.position.y = 1.37;
+        goal_msg.target_pose.pose.position.x = 3.20;
+        goal_msg.target_pose.pose.position.y = -0.85;
         goal_msg.target_pose.pose.orientation.w = 1.0;
         // Send the goal to the action server
         action_client_->sendGoal(goal_msg);
@@ -74,7 +74,6 @@ public:
     void onHalted() override
     {
       // nothing to do here...
-      tag_sub.shutdown();
       std::cout << "goto_stop interrupted" << std::endl;
     }
 

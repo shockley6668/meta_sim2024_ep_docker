@@ -65,7 +65,7 @@ public:
         goal_msg.target_pose.pose.orientation.y = q.y();
         goal_msg.target_pose.pose.orientation.z = q.z();
         action_client_->sendGoal(goal_msg);
-
+        movebase_reset_try=0;
         // auto res=getInput<int>("takeing_cube_num");
         // take_cube_num=res.value();
         // auto res1=getInput<int>("target_cube_num1");
@@ -131,9 +131,34 @@ public:
         else if(nav_done==false&&action_client_->getState() == actionlib::SimpleClientGoalState::ABORTED)
         {
             std::cout<<"nav failed"<<std::endl;
-            sendBaseVel(0.2,0,0);
-            ros::Duration(0.4).sleep();
-            sendBaseVel(0,0,0);
+            if(movebase_reset_try==0)
+            {
+                sendBaseVel(0.4,0,0);
+                ros::Duration(0.5).sleep();
+                sendBaseVel(0,0,0);
+                movebase_reset_try++;
+            }
+            else if(movebase_reset_try==1)
+            {
+                sendBaseVel(-0.4,0,0);
+                ros::Duration(0.5).sleep();
+                sendBaseVel(0,0,0);
+                movebase_reset_try++;
+            }
+            else if(movebase_reset_try==2)
+            {
+                sendBaseVel(0,0.4,0);
+                ros::Duration(0.5).sleep();
+                sendBaseVel(0,0,0);
+                movebase_reset_try++;
+            }
+            else if(movebase_reset_try==3)
+            {
+                sendBaseVel(0,-0.4,0);
+                ros::Duration(0.5).sleep();
+                sendBaseVel(0,0,0);
+                movebase_reset_try=0;
+            }
             move_base_msgs::MoveBaseGoal goal_msg;
             goal_msg.target_pose.header.frame_id = "map";
             goal_msg.target_pose.header.stamp = ros::Time::now();
@@ -206,7 +231,7 @@ public:
             if(first_tag)
             {
                 std::cout<<"aim_id"<<aim_tag.id[0]<<std::endl;
-                float target_x=watchboard_pose.pose.position.x-0.28;
+                float target_x=watchboard_pose.pose.position.x-0.27;
                 std::cout<<"target_x"<<target_x<<std::endl;
                 if(abs(target_x-robot_gobal_pose_.pose.position.x)>0.005)
                 {
@@ -263,30 +288,22 @@ private:
         std::cout<<"arm_high:"<<arm_high<<std::endl;
         if(arm_high==0)
         {
-            if(first_place==true)
-            {
-                arm_position.position.x = 0.23;
-                arm_position.position.y = 0.01;
-                first_place=false;
-            }
-            else{
-                arm_position.position.x = 0.18;
-                arm_position.position.y = 0.01;
-            }
+            arm_position.position.x = 0.18;
+            arm_position.position.y = 0.01;
         }
         else if(arm_high==1)
         {
-            arm_position.position.x = 0.20;
+            arm_position.position.x = 0.18;
             arm_position.position.y = 0.06;
         }
         else if(arm_high==2)
         {
-            arm_position.position.x = 0.20;
-            arm_position.position.y = 0.11;
+            arm_position.position.x = 0.18;
+            arm_position.position.y = 0.12;
         }
         else if(arm_high==3)
         {
-            arm_position.position.x = 0.20;
+            arm_position.position.x = 0.18;
             arm_position.position.y = 0.15;
         }
         arm_position_pub.publish(arm_position);
@@ -359,6 +376,7 @@ private:
     geometry_msgs::PoseStamped robot_gobal_pose_;
     apriltag_ros::AprilTagDetectionArray tag_msg;
     int aim_tag_id;
+    int movebase_reset_try=0;
     ros::Publisher cmd_pub;
     bool reached_flag=false;
     bool detected=false;

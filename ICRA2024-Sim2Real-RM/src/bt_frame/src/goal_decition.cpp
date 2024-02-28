@@ -84,6 +84,10 @@ void goal_status_callback(const std_msgs::Int32::ConstPtr &msg)
     {
         goal_reached=true;
     }
+    if(msg->data==0)
+    {
+        goal_reached=false;
+    }
 } 
 void tagCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr & msg)
 {
@@ -132,7 +136,7 @@ void tagCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr & msg)
         {
             // if(dist <= 2.0f)
             //     poses[it.id[0]] = robot_gobal_pose_;
-            if(w <= weight[it.id[0]] && dist_ >= 0.3)
+            if(w <= weight[it.id[0]] && dist_ >= 0.3 && dist_ <= 1.3)
             {
                 weight[it.id[0]] = w;
                 poses[it.id[0]] = robot_gobal_pose_;
@@ -155,6 +159,12 @@ void tagCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr & msg)
                 index = i;
             }
         }
+        if(tag_map_pose.pose.position.y >= 2.75)
+            index = 2;
+        else if(tag_map_pose.pose.position.x <= 0.62)
+            index = 0;
+        else if(tag_map_pose.pose.position.x >= 1.70)
+            index = 1;
         // std::cout << "index: " << index << std::endl;
         switch (index)
         {
@@ -365,7 +375,7 @@ int main(int argc, char** argv) {
             {
                 if(std::find(place1.begin(), place1.end(), target_cube_num[i]) != place1.end())
                 {
-                    found = false;
+                    found = true;
                     std::cout << "target block id : " << target_cube_num[i] << " found in place1" << std::endl;
                     if(poses[target_cube_num[i]].pose.position.x == 0 && poses[target_cube_num[i]].pose.position.y == 0)
                     {
@@ -394,6 +404,11 @@ int main(int argc, char** argv) {
                                 state = 2;
                             else if(state == 2)
                                 state = 0;
+                            else if(state == 3)
+                                state = 0;
+                            else if(state == -1)
+                                state = 0;
+                            std::cout << "state : " << state << std::endl;
                             goal_reached = false;
                         }
                     }
@@ -430,6 +445,11 @@ int main(int argc, char** argv) {
                                 state = 2;
                             else if(state == 2)
                                 state = 0;
+                            else if(state == 3)
+                                state = 0;
+                            else if(state == -1)
+                                state = 0;
+                            std::cout << "state : " << state << std::endl;
                             goal_reached = false;
                         }
                     }
@@ -466,20 +486,30 @@ int main(int argc, char** argv) {
                                 state = 2;
                             else if(state == 2)
                                 state = 0;
+                            else if(state == 3)
+                                state = 0;
+                            else if(state == -1)
+                                state = 0;
+                            std::cout << "state : " << state << std::endl;
                             goal_reached = false;
                         }
                     }
                     break;
                 }
-                else
-                {
+            }
+            if(!found)
+            {
                     if(state == 0)
                         state = 1;
                     else if(state == 1)
                         state = 2;
                     else if(state == 2)
                         state = 0;
-                }
+                    else if(state == 3)
+                        state = 0;
+                    else if(state == -1)
+                        state = 0;
+                    std::cout << "state : " << state << std::endl;
             }
         }
         else if(!first_find && !find_three_state)
@@ -493,17 +523,26 @@ int main(int argc, char** argv) {
                 int j = 0;
                 for(j = 0;j < place1.size();j++)
                     if(place1[j] != -1)
+                    {
                         found[0] = true;
+                        break;
+                    }
                 if(j == place1.size())
                     found[0] = false;
                 for(j = 0;j < place2.size();j++)
                     if(place2[j] != -1)
+                    {
                         found[1] = true;
+                        break;
+                    }
                 if(j == place2.size())
                     found[1] = false;
                 for(int j = 0;j < place3.size();j++)
                     if(place3[j] != -1)
+                    {
                         found[2] = true;
+                        break;
+                    }
                 if(j == place3.size())  
                     found[2] = false;
                 if(found[0])
@@ -617,7 +656,7 @@ int main(int argc, char** argv) {
                     }
                     break;
                 }
-                else
+                if(!found[0] && !found[1] && !found[2])
                 {
                     if(state == 0)
                         state = 1;
@@ -625,6 +664,11 @@ int main(int argc, char** argv) {
                         state = 2;
                     else if(state == 2)
                         state = 0;
+                    else if(state == 3)
+                        state = 0;
+                    else if(state == -1)
+                        state = 0;
+                    std::cout << "state : " << state << std::endl;
                 }
             }
         }
@@ -634,16 +678,21 @@ int main(int argc, char** argv) {
         case 0:
             //第一阶段 用movebase
             {
+                if(!goal_reached)
+                {
+                    bt_frame::ep_goal goal;
+                    goal.type=0;
+                    goal.x=0.8;
+                    goal.y=1.0;
+                    goal.yaw=3.14;
+                    goal_pub.publish(goal);
 
-                bt_frame::ep_goal goal;
-                goal.type=0;
-                goal.x=0.8;
-                goal.y=1.0;
-                goal.yaw=3.14;
-                goal_pub.publish(goal);
-
-                // std::cout << "state = 0 moving to 0.8 1.0 3.14" << std::endl;
-                std::cout << "goal_reached: " << goal_reached << std::endl;
+                    // std::cout << "state = 0 moving to 0.8 1.0 3.14" << std::endl;
+                    std::cout << "state: " << state << std::endl;
+                    std::cout << "goal_reached: " << goal_reached << std::endl;
+                    if(!first_find && !find_three_state)
+                        state = 1;
+                }
                 if(goal_reached)
                 {
                     state++;
@@ -655,15 +704,23 @@ int main(int argc, char** argv) {
             {
                 // Node start(2 ,1), end(4,1);
                 // vector<pair<int, int>> path = dijkstra(grid, start, end);
-                bt_frame::ep_goal goal;
-                goal.type=0;
-                goal.x=1.88;
-                goal.y=-0.05;
-                goal.yaw=0;
-                goal_pub.publish(goal);
-                // std::cout << "state = 1 moving to 1.86 -0.1" << std::endl;
-                std::cout << "goal_reached: " << goal_reached << std::endl;
-                goal_pub.publish(goal);
+                if(!goal_reached)
+                {
+                    bt_frame::ep_goal goal;
+                    goal.type=0;
+                    goal.x=1.88;
+                    goal.y=-0.05;
+                    goal.yaw=0;
+                    goal_pub.publish(goal);
+                    // std::cout << "state = 1 moving to 1.86 -0.1" << std::endl;
+                    std::cout << "state: " << state << std::endl;
+                    std::cout << "goal_reached: " << goal_reached << std::endl;
+                    goal_pub.publish(goal);
+
+                    if(!first_find && !find_three_state)
+                        state = 2;
+                }
+                
                 if(goal_reached)
                 {
                     state++;
@@ -673,16 +730,23 @@ int main(int argc, char** argv) {
             break;
         case 2:
             {
-                bt_frame::ep_goal goal;
-                goal.type=0;
-                goal.type=0;
-                goal.x=1.3;
-                goal.y=2.9;
-                goal.yaw= 2.392;
-                goal_pub.publish(goal);
+                if(!goal_reached)
+                {
+                    bt_frame::ep_goal goal;
+                    goal.type=0;
+                    goal.type=0;
+                    goal.x=1.3;
+                    goal.y=2.9;
+                    goal.yaw= 2.392;
+                    goal_pub.publish(goal);
 
-                // std::cout << "state = 2 moving to 1.3 2.9 2.392" << std::endl;
-                std::cout << "goal_reached: " << goal_reached << std::endl;
+                    // std::cout << "state = 2 moving to 1.3 2.9 2.392" << std::endl;
+                    std::cout << "state: " << state << std::endl;
+                    std::cout << "goal_reached: " << goal_reached << std::endl;
+
+                    if(!first_find && !find_three_state)
+                        state = 0;
+                }
                 if(goal_reached)
                 {
                     state++;
@@ -693,7 +757,8 @@ int main(int argc, char** argv) {
             break;
         case 3:
             {
-                if(find_three_state==true)
+                std::cout << "state: " << state << std::endl;
+                // if(find_three_state==true)
                 {
                     state=0;
                 }

@@ -55,6 +55,8 @@ public:
         first_tag=false;
         detected=false;
         watchboard_pose.header.frame_id = "none";
+        count=0;
+        movebase_reset_try=0;
         // Get the goal pose from the input port
         //const geometry_msgs::PoseStamped& goal = getInput<geometry_msgs::PoseStamped>("goal");
         // GetGlobalRobotPose(tf_listener_, "map", robot_gobal_pose_);
@@ -167,15 +169,41 @@ public:
             nav_done=true;
             std::cout<<"nav done"<<std::endl;
             tag_sub=node_.subscribe("/tag_detections", 10, &Place::tagCallback,this);
+            
             sendBaseVel(0,0,0);
         }
         else if(nav_done==false&&action_client_->getState() == actionlib::SimpleClientGoalState::ABORTED)
         {
             std_srvs::Empty srv;
             move_base_clear.call(srv);
-            sendBaseVel(0.3,0,0);
-            ros::Duration(0.4).sleep();
-            sendBaseVel(0,0,0);
+            if(movebase_reset_try==0)
+            {
+                sendBaseVel(0.4,0,0);
+                ros::Duration(0.5).sleep();
+                sendBaseVel(0,0,0);
+                movebase_reset_try++;
+            }
+            else if(movebase_reset_try==1)
+            {
+                sendBaseVel(-0.4,0,0);
+                ros::Duration(0.5).sleep();
+                sendBaseVel(0,0,0);
+                movebase_reset_try++;
+            }
+            else if(movebase_reset_try==2)
+            {
+                sendBaseVel(0,0.4,0);
+                ros::Duration(0.5).sleep();
+                sendBaseVel(0,0,0);
+                movebase_reset_try++;
+            }
+            else if(movebase_reset_try==3)
+            {
+                sendBaseVel(0,-0.4,0);
+                ros::Duration(0.5).sleep();
+                sendBaseVel(0,0,0);
+                movebase_reset_try=0;
+            }
             std::cout<<"nav failed"<<std::endl;
             move_base_msgs::MoveBaseGoal goal_msg;
             goal_msg.target_pose.header.frame_id = "map";
@@ -189,7 +217,18 @@ public:
             goal_msg.target_pose.pose.orientation.z = q.z();
             action_client_->sendGoal(goal_msg);
         }
-      
+        if(nav_done&&!detected&&y_done==false)
+        {   
+            count++;
+            if(count>15)
+            {
+                sendBaseVel(-0.60,0,0);
+                ros::Duration(0.3).sleep();
+                sendBaseVel(0,0,0);
+                count=0;
+            }
+            
+        }
         // else if(nav_done==false&&action_client_->getState() == actionlib::SimpleClientGoalState::ABORTED)
         // {
         //     std_srvs::Empty srv;
@@ -250,7 +289,7 @@ public:
             }
             if(first_tag)
             {
-                float target_x=watchboard_pose.pose.position.x-0.28;
+                float target_x=watchboard_pose.pose.position.x-0.27;
                 std::cout<<"target_x"<<target_x<<std::endl;
                 if(abs(target_x-robot_gobal_pose_.pose.position.x)>0.01)
                 {
@@ -400,7 +439,7 @@ private:
     bool goal_reached;
     int aim_tag_id;
     ros::Publisher cmd_pub;
-
+    int count;
     bool detected=false;
     bool nav_done;
     bool y_done;
@@ -409,6 +448,7 @@ private:
     vector<double> y_param = {1, 0.01, 0.01};
     int take_cube_num;
     const float aim_set=0.045;
+    int movebase_reset_try;
     PIDController y_pid;
     PIDController x_pid;
 };

@@ -111,13 +111,18 @@ public:
                 goal_reached=false;
                 std_msgs::Int32 msg;
                 msg.data=1;
-                for(int i=0;i<10;i++)
+                // for(int i=0;i<10;i++)
                 {
                     goal_status_pubs_.publish(msg);
                 }
                 std::cout<<"fuck reached"<<std::endl;
                 goal_status_sub_.shutdown();
                 return BT::NodeStatus::SUCCESS;
+            }
+            else{
+                std_msgs::Int32 msg;
+                msg.data=0;
+                goal_status_pubs_.publish(msg);
             }
         }
         

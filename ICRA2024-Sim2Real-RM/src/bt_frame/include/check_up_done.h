@@ -12,7 +12,7 @@ public:
     Check_up_done(ros::NodeHandle& Handle, const std::string& name, const NodeConfig& config):StatefulActionNode(name, config)
     {
         nh = Handle;
-        auto start = std::chrono::high_resolution_clock::now();
+        start = std::chrono::high_resolution_clock::now();
         taking_tag_id_pub = nh.advertise<std_msgs::Int32>("taking_tag_id", 10);
     }
     static PortsList providedPorts()
@@ -50,11 +50,11 @@ public:
             TransformPose(cam_to_map,highest_tag_pose, highest_tag_map_pose);
             std::cout<<"highest_tag_id: "<<highest_tag.id[0]<<std::endl;
             std::cout << "highest_tag_map_posez: " << highest_tag_map_pose.pose.position.z << std::endl;
-            if(highest_tag_map_pose.pose.position.z > 0.14)
+            if(highest_tag_map_pose.pose.position.z > 0.135)
             {
                 return BT::NodeStatus::SUCCESS;
             }
-            if(highest_tag_map_pose.pose.position.z > 0.12)
+            if(highest_tag_map_pose.pose.position.z > 0.10)
             {
                 setOutput<int>("arm_high", 2);
                 return BT::NodeStatus::FAILURE;
@@ -78,6 +78,7 @@ public:
     void onHalted() override
     {
         tag_sub.shutdown();
+        std::cout << "check_up_done interrupted" << std::endl;
     }
 private:
     void tag_callback(const apriltag_ros::AprilTagDetectionArray::ConstPtr& msg)
@@ -102,6 +103,7 @@ private:
     std::shared_ptr<tf::TransformListener> tf_listener_;
     apriltag_ros::AprilTagDetection highest_tag;
     ros::Publisher taking_tag_id_pub;
+    std::chrono::time_point<std::chrono::high_resolution_clock> start;
     int fal_limit = 0;
     int count;
 };
