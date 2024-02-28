@@ -52,21 +52,31 @@ public:
             std::cout << "highest_tag_map_posez: " << highest_tag_map_pose.pose.position.z << std::endl;
             if(highest_tag_map_pose.pose.position.z > 0.135)
             {
+                tag_sub.shutdown();
                 return BT::NodeStatus::SUCCESS;
             }
             if(highest_tag_map_pose.pose.position.z > 0.10)
             {
                 setOutput<int>("arm_high", 2);
+                tag_sub.shutdown();
+                return BT::NodeStatus::FAILURE;
+            }
+            if(highest_tag_map_pose.pose.position.z > 0.10)
+            {
+                setOutput<int>("arm_high", 2);
+                tag_sub.shutdown();
                 return BT::NodeStatus::FAILURE;
             }
             else if(highest_tag_map_pose.pose.position.z > 0.07)
             {
                 setOutput<int>("arm_high", 1);
+                tag_sub.shutdown();
                 return BT::NodeStatus::FAILURE;
             }
             else
             {
                 setOutput<int>("arm_high", 0);
+                tag_sub.shutdown();
                 return BT::NodeStatus::FAILURE;
             }
             

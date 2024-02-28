@@ -49,6 +49,7 @@ struct Node {
 const int dx[] = {-1, 1, 0, 0, -1, -1, 1, 1};
 const int dy[] = {0, 0, -1, 1, -1, 1, -1, 1};
 
+
 vector<pair<int, int>> dijkstra(vector<vector<int>>& grid, Node start, Node end) {
     int m = grid.size(), n = grid[0].size();
     vector<vector<int>> dist(m, vector<int>(n, INT_MAX));
@@ -142,8 +143,8 @@ void tagCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr & msg)
                 poses[it.id[0]] = robot_gobal_pose_;
             }
         }
-        std::cout << "tag_current_weight" << w << std::endl;
-        std::cout << "tag_weight: " << weight[it.id[0]] << std::endl;
+        // std::cout << "tag_current_weight" << w << std::endl;
+        // std::cout << "tag_weight: " << weight[it.id[0]] << std::endl;
         double dist[4] = {0};
         dist[0] = pow(tag_map_pose.pose.position.x - 0.8, 2) + pow(tag_map_pose.pose.position.y - 1.0, 2);
         dist[1] = pow(tag_map_pose.pose.position.x - 1.86, 2) + pow(tag_map_pose.pose.position.y + 0.1, 2);
@@ -172,11 +173,7 @@ void tagCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr & msg)
         {
             if(std::find(place1.begin(), place1.end(), it.id[0]) == place1.end())
             {
-                bool fns = false;
-                for(int i = 0;i < 0;i++)
-                    if(finish[i] == it.id[0])
-                        fns = true;
-                if(!fns)
+                if(std::find(finish.begin(), finish.end(), it.id[0]) == finish.end())
                     place1.push_back(it.id[0]);
             }
         }
@@ -185,11 +182,7 @@ void tagCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr & msg)
         {
             if(std::find(place2.begin(), place2.end(), it.id[0]) == place2.end())
             {
-                bool fns = false;
-                for(int i = 0;i < 0;i++)
-                    if(finish[i] == it.id[0])
-                        fns = true;
-                if(!fns)
+                if(std::find(finish.begin(), finish.end(), it.id[0]) == finish.end())
                     place2.push_back(it.id[0]);
             }
         }
@@ -198,11 +191,7 @@ void tagCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr & msg)
         {
             if(std::find(place3.begin(), place3.end(), it.id[0]) == place3.end())
             {
-                bool fns = false;
-                for(int i = 0;i < 0;i++)
-                    if(finish[i] == it.id[0])
-                        fns = true;
-                if(!fns)
+                if(std::find(finish.begin(), finish.end(), it.id[0]) == finish.end())
                     place3.push_back(it.id[0]);
             }
         }
@@ -289,6 +278,7 @@ int main(int argc, char** argv) {
     ros::NodeHandle nh;
 
     ros::Publisher goal_pub = nh.advertise<bt_frame::ep_goal>("ep_next_goal", 10);
+    ros::Publisher test = nh.advertise<std_msgs::Int32>("test", 10);
     ros::Subscriber goal_status_sub=nh.subscribe<std_msgs::Int32>("ep_goal_status",10,goal_status_callback);
     ros::Rate loop_rate(100);
     ros::ServiceClient change_point_client = nh.serviceClient<simple_planner::change_point_num>("/change_point_num");
@@ -304,13 +294,7 @@ int main(int argc, char** argv) {
             {
                 // place1.erase(place1.begin() + i);
                 place1[i] = -1;
-                bool fns = false;
-                for(int i = 0;i < finish.size();i++)
-                    if(finish[i] == msg->data)
-                    {
-                        fns = true;
-                    }
-                if(!fns)
+                if(std::find(finish.begin(), finish.end(), msg->data) == finish.end())
                     finish.push_back(msg->data);
                 return;
             }   
@@ -319,13 +303,7 @@ int main(int argc, char** argv) {
             {
                 // place2.erase(place2.begin() + i);
                 place2[i] = -1;
-                bool fns = false;
-                for(int i = 0;i < finish.size();i++)
-                    if(finish[i] == msg->data)
-                    {
-                        fns = true;
-                    }
-                if(!fns)
+                if(std::find(finish.begin(), finish.end(), msg->data) == finish.end())
                     finish.push_back(msg->data);
                 return;
             }
@@ -334,13 +312,7 @@ int main(int argc, char** argv) {
             {
                 // place3.erase(place3.begin() + i);
                 place3[i] = -1;
-                bool fns = false;
-                for(int i = 0;i < finish.size();i++)
-                    if(finish[i] == msg->data)
-                    {
-                        fns = true;
-                    }
-                if(!fns)
+                if(std::find(finish.begin(), finish.end(), msg->data) == finish.end())
                     finish.push_back(msg->data);
                 return;
             }
@@ -553,7 +525,13 @@ int main(int argc, char** argv) {
                         {
                             tag_id = place1[i];
                             // place1[i] = -1;
-                            finish.push_back(tag_id);
+                            if(std::find(finish.begin(), finish.end(), tag_id) == finish.end());
+                            {
+                                // finish.push_back(tag_id);
+                                std_msgs::Int32 t;
+                                t.data = tag_id;
+                                test.publish(t);
+                            }
                             break;
                         }
                     std::cout << "tag_id: " << tag_id << " found in place1" << std::endl;
@@ -580,6 +558,21 @@ int main(int argc, char** argv) {
                         // std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
                     }
                     tar_tag.publish(tag);
+                    if(goal_reached && !detected)
+                    {
+                        if(state == 0)
+                            state = 1;
+                        else if(state == 1)
+                                state = 2;
+                        else if(state == 2)
+                            state = 0;
+                        else if(state == 3)
+                            state = 0;
+                        else if(state == -1)
+                            state = 0;
+                        std::cout << "state : " << state << std::endl;
+                        goal_reached = false;
+                    }
                     break;
                 }
                 if(found[1])
@@ -590,7 +583,13 @@ int main(int argc, char** argv) {
                         {
                             tag_id = place2[i];
                             // place2[i] = -1;
-                            finish.push_back(tag_id);
+                            if(std::find(finish.begin(), finish.end(), tag_id) == finish.end());
+                            {
+                                // finish.push_back(tag_id);
+                                std_msgs::Int32 t;
+                                t.data = tag_id;
+                                test.publish(t);
+                            }
                             break;
                         }
                     std::cout << "tag_id: " << tag_id << " found in place2" << std::endl;
@@ -617,6 +616,21 @@ int main(int argc, char** argv) {
                         state = -1;
                         // std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
                     }
+                    if(goal_reached && !detected)
+                    {
+                        if(state == 0)
+                            state = 1;
+                        else if(state == 1)
+                                state = 2;
+                        else if(state == 2)
+                            state = 0;
+                        else if(state == 3)
+                            state = 0;
+                        else if(state == -1)
+                            state = 0;
+                        std::cout << "state : " << state << std::endl;
+                        goal_reached = false;
+                    }
                     break;
                 }
                 if(found[2])     
@@ -627,7 +641,13 @@ int main(int argc, char** argv) {
                         {
                             tag_id = place3[i];
                             // place3[i] = -1;
-                            finish.push_back(tag_id);
+                            if(std::find(finish.begin(), finish.end(), tag_id) == finish.end());
+                            {
+                                // finish.push_back(tag_id);
+                                std_msgs::Int32 t;
+                                t.data = tag_id;
+                                test.publish(t);
+                            }
                             break;
                         }
                     std::cout << "tag_id: " << tag_id << " found in place3" << std::endl;
@@ -654,6 +674,21 @@ int main(int argc, char** argv) {
                         state = -1;
                         // std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
                     }
+                    if(goal_reached && !detected)
+                    {
+                        if(state == 0)
+                            state = 1;
+                        else if(state == 1)
+                                state = 2;
+                        else if(state == 2)
+                            state = 0;
+                        else if(state == 3)
+                            state = 0;
+                        else if(state == -1)
+                            state = 0;
+                        std::cout << "state : " << state << std::endl;
+                        goal_reached = false;
+                    }
                     break;
                 }
                 if(!found[0] && !found[1] && !found[2])
@@ -663,12 +698,27 @@ int main(int argc, char** argv) {
                     else if(state == 1)
                         state = 2;
                     else if(state == 2)
+                        state = 0;./s
+                    else if(state == 3)
+                        state = 0;
+                    else if(state == -1)
+                        state = 0;
+                    std::cout << "state : " << state << std::endl;
+                }
+                if(goal_reached && !detected)
+                {
+                    if(state == 0)
+                        state = 1;
+                    else if(state == 1)
+                            state = 2;
+                    else if(state == 2)
                         state = 0;
                     else if(state == 3)
                         state = 0;
                     else if(state == -1)
                         state = 0;
                     std::cout << "state : " << state << std::endl;
+                    goal_reached = false;
                 }
             }
         }
