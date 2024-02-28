@@ -135,7 +135,7 @@ public:
                 goal_reached=false;
                 std_msgs::Int32 msg;
                 msg.data=1;
-                // for(int i=0;i<10;i++)
+                for(int i=0;i<10;i++)
                 {
                     goal_status_pubs_.publish(msg);
                 }
