@@ -132,7 +132,7 @@ void tagCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr & msg)
         {
             // if(dist <= 2.0f)
             //     poses[it.id[0]] = robot_gobal_pose_;
-            if(w <= weight[it.id[0]])
+            if(w <= weight[it.id[0]] && dist_ >= 0.3)
             {
                 weight[it.id[0]] = w;
                 poses[it.id[0]] = robot_gobal_pose_;
@@ -473,11 +473,11 @@ int main(int argc, char** argv) {
                 }
                 else
                 {
-                    if(state = 0)
+                    if(state == 0)
                         state = 1;
-                    else if(state = 1)
+                    else if(state == 1)
                         state = 2;
-                    else if(state = 2)
+                    else if(state == 2)
                         state = 0;
                 }
             }
@@ -619,11 +619,11 @@ int main(int argc, char** argv) {
                 }
                 else
                 {
-                    if(state = 0)
+                    if(state == 0)
                         state = 1;
-                    else if(state = 1)
+                    else if(state == 1)
                         state = 2;
-                    else if(state = 2)
+                    else if(state == 2)
                         state = 0;
                 }
             }
@@ -656,30 +656,11 @@ int main(int argc, char** argv) {
                 // Node start(2 ,1), end(4,1);
                 // vector<pair<int, int>> path = dijkstra(grid, start, end);
                 bt_frame::ep_goal goal;
-                simple_planner::change_point_num ch_t;
-                ch_t.request.point_num=5;
-                float arrx[5]={1.0,1.55,2.0,2.0,1.86};
-                float arry[5]={1.0,1.0,1.0,0.6,-0.1};
-                goal.type=1;
-                // if(change_point_client.call(ch_t))
-                // {
-                //     std::cout<<"change point num to"<<ch_t.request.point_num<<std::endl;
-                //     for (int i=0;i<5;i++) {
-                //     geometry_msgs::PointStamped point_t;
-                //     point_t.point.x=arrx[i];
-                //     point_t.point.y=arry[i];
-                //     goal.points.push_back(point_t);    
-                //     }
-                //     goal_pub.publish(goal);
-                // }
-
-                for (int i=0;i<5;i++) {
-                    geometry_msgs::PointStamped point_t;
-                    point_t.point.x=arrx[i];
-                    point_t.point.y=arry[i];
-                    goal.points.push_back(point_t);    
-                }
-                
+                goal.type=0;
+                goal.x=1.88;
+                goal.y=-0.05;
+                goal.yaw=3.14;
+                goal_pub.publish(goal);
                 // std::cout << "state = 1 moving to 1.86 -0.1" << std::endl;
                 std::cout << "goal_reached: " << goal_reached << std::endl;
                 goal_pub.publish(goal);

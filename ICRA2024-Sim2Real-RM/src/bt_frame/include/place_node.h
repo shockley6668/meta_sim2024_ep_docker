@@ -50,76 +50,76 @@ public:
     NodeStatus onStart() override
     {
 
-        goal_status_sub_ = node_.subscribe("/cmd_vel", 2, &Place::goalStatusCallback, this);
+        //goal_status_sub_ = node_.subscribe("/cmd_vel", 2, &Place::goalStatusCallback, this);
         y_done=false;
         first_tag=false;
         detected=false;
         watchboard_pose.header.frame_id = "none";
         // Get the goal pose from the input port
         //const geometry_msgs::PoseStamped& goal = getInput<geometry_msgs::PoseStamped>("goal");
-        GetGlobalRobotPose(tf_listener_, "map", robot_gobal_pose_);
-        ros::Duration(0.5).sleep();
-        if(robot_gobal_pose_.pose.position.y>2.4)
-        {
-            vector<float> goal_x={1.24,1.24,1.20,1.20,1.15};
-            vector<float> goal_y={3.09,2.78,2.5,2.0,1.78};
-            for(int i=0;i<5;i++)
-            {
-                geometry_msgs::PointStamped p;
-                p.header.frame_id = "map";
-                p.header.stamp = ros::Time::now();
-                p.header.seq = i;
-                p.point.x = goal_x[i];
-                p.point.y = goal_y[i];
-                simple_planner_pub.publish(p);
-                ros::Duration(0.05).sleep();
-            }
-        }
-        else if(robot_gobal_pose_.pose.position.y>0.45)
-        {
-            for(int i=0;i<5;i++)
-            {
-                geometry_msgs::PointStamped p;
-                p.header.frame_id = "map";
-                p.header.stamp = ros::Time::now();
-                p.header.seq = i;
-                p.point.x = 1.15;
-                p.point.y = 1.78;
-                simple_planner_pub.publish(p);
-                ros::Duration(0.05).sleep();
-            }
-        }
-        else{
-            vector<float> goal_x={2.00,2.00,1.50,1,1.15};
-            vector<float> goal_y={0.45,0.96,1.0,1,1.78};
-            for(int i=0;i<5;i++)
-            {
-                geometry_msgs::PointStamped p;
-                p.header.frame_id = "map";
-                p.header.stamp = ros::Time::now();
-                p.header.seq = i;
-                p.point.x = goal_x[i];
-                p.point.y = goal_y[i];
-                simple_planner_pub.publish(p);
-                ros::Duration(0.05).sleep();
-            }
-        }
+        // GetGlobalRobotPose(tf_listener_, "map", robot_gobal_pose_);
+        // ros::Duration(0.5).sleep();
+        // if(robot_gobal_pose_.pose.position.y>2.4)
+        // {
+        //     vector<float> goal_x={1.24,1.24,1.20,1.20,1.15};
+        //     vector<float> goal_y={3.09,2.78,2.5,2.0,1.78};
+        //     for(int i=0;i<5;i++)
+        //     {
+        //         geometry_msgs::PointStamped p;
+        //         p.header.frame_id = "map";
+        //         p.header.stamp = ros::Time::now();
+        //         p.header.seq = i;
+        //         p.point.x = goal_x[i];
+        //         p.point.y = goal_y[i];
+        //         simple_planner_pub.publish(p);
+        //         ros::Duration(0.05).sleep();
+        //     }
+        // }
+        // else if(robot_gobal_pose_.pose.position.y>0.45)
+        // {
+        //     for(int i=0;i<5;i++)
+        //     {
+        //         geometry_msgs::PointStamped p;
+        //         p.header.frame_id = "map";
+        //         p.header.stamp = ros::Time::now();
+        //         p.header.seq = i;
+        //         p.point.x = 1.15;
+        //         p.point.y = 1.78;
+        //         simple_planner_pub.publish(p);
+        //         ros::Duration(0.05).sleep();
+        //     }
+        // }
+        // else{
+        //     vector<float> goal_x={2.00,2.00,1.50,1,1.15};
+        //     vector<float> goal_y={0.45,0.96,1.0,1,1.78};
+        //     for(int i=0;i<5;i++)
+        //     {
+        //         geometry_msgs::PointStamped p;
+        //         p.header.frame_id = "map";
+        //         p.header.stamp = ros::Time::now();
+        //         p.header.seq = i;
+        //         p.point.x = goal_x[i];
+        //         p.point.y = goal_y[i];
+        //         simple_planner_pub.publish(p);
+        //         ros::Duration(0.05).sleep();
+        //     }
+        // }
 
-        // move_base_msgs::MoveBaseGoal goal_msg;
-        // sendBaseVel(0,0,0);
-        // watchboard_pose.header.frame_id = "none";
-        // y_done=false;
-        // first_tag=false;
-        // goal_msg.target_pose.header.frame_id = "map";
-        // goal_msg.target_pose.header.stamp = ros::Time::now();
-        // goal_msg.target_pose.pose.position.x = 1.18;
-        // goal_msg.target_pose.pose.position.y = 1.78;
-        // tf::Quaternion q=tf::createQuaternionFromYaw(0.0);
-        // goal_msg.target_pose.pose.orientation.w = q.w();
-        // goal_msg.target_pose.pose.orientation.x = q.x();
-        // goal_msg.target_pose.pose.orientation.y = q.y();
-        // goal_msg.target_pose.pose.orientation.z = q.z();
-        // action_client_->sendGoal(goal_msg);
+        move_base_msgs::MoveBaseGoal goal_msg;
+        sendBaseVel(0,0,0);
+        watchboard_pose.header.frame_id = "none";
+        y_done=false;
+        first_tag=false;
+        goal_msg.target_pose.header.frame_id = "map";
+        goal_msg.target_pose.header.stamp = ros::Time::now();
+        goal_msg.target_pose.pose.position.x = 1.18;
+        goal_msg.target_pose.pose.position.y = 1.78;
+        tf::Quaternion q=tf::createQuaternionFromYaw(0.0);
+        goal_msg.target_pose.pose.orientation.w = q.w();
+        goal_msg.target_pose.pose.orientation.x = q.x();
+        goal_msg.target_pose.pose.orientation.y = q.y();
+        goal_msg.target_pose.pose.orientation.z = q.z();
+        action_client_->sendGoal(goal_msg);
 
         
         
@@ -162,13 +162,34 @@ public:
     {
         
         
-        if(nav_done==true)
+        if(action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
         {
-            
+            nav_done=true;
             std::cout<<"nav done"<<std::endl;
             tag_sub=node_.subscribe("/tag_detections", 10, &Place::tagCallback,this);
             sendBaseVel(0,0,0);
         }
+        else if(nav_done==false&&action_client_->getState() == actionlib::SimpleClientGoalState::ABORTED)
+        {
+            std_srvs::Empty srv;
+            move_base_clear.call(srv);
+            sendBaseVel(0.3,0,0);
+            ros::Duration(0.4).sleep();
+            sendBaseVel(0,0,0);
+            std::cout<<"nav failed"<<std::endl;
+            move_base_msgs::MoveBaseGoal goal_msg;
+            goal_msg.target_pose.header.frame_id = "map";
+            goal_msg.target_pose.header.stamp = ros::Time::now();
+            goal_msg.target_pose.pose.position.x = 1.18;
+            goal_msg.target_pose.pose.position.y = 1.78;
+            tf::Quaternion q=tf::createQuaternionFromYaw(0.0);
+            goal_msg.target_pose.pose.orientation.w = q.w();
+            goal_msg.target_pose.pose.orientation.x = q.x();
+            goal_msg.target_pose.pose.orientation.y = q.y();
+            goal_msg.target_pose.pose.orientation.z = q.z();
+            action_client_->sendGoal(goal_msg);
+        }
+      
         // else if(nav_done==false&&action_client_->getState() == actionlib::SimpleClientGoalState::ABORTED)
         // {
         //     std_srvs::Empty srv;
@@ -261,7 +282,7 @@ public:
                     action_client_->sendGoal(goal_msg);
                     ros::Duration(2).sleep();
                     tag_sub.shutdown();
-                    goal_status_sub_.shutdown();
+                    //goal_status_sub_.shutdown();
                     return BT::NodeStatus::SUCCESS;
                 }
                 
@@ -280,15 +301,15 @@ public:
     }
 
 private:
-    void goalStatusCallback(const geometry_msgs::Twist& msg)
-    {
+    // void goalStatusCallback(const geometry_msgs::Twist& msg)
+    // {
         
-        if (nav_done==false&&msg.linear.z == 1)
-        {
-            ROS_INFO("simple planner Goal reached");
-            nav_done=true;
-        }
-    }
+    //     if (nav_done==false&&msg.linear.z == 1)
+    //     {
+    //         ROS_INFO("simple planner Goal reached");
+    //         nav_done=true;
+    //     }
+    // }
     void sendBaseVel(float x,float y,float yaw)
     {
         geometry_msgs::Twist twist;
@@ -365,7 +386,7 @@ private:
     ros::NodeHandle node_;
     std::shared_ptr<actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>> action_client_;
     ros::Publisher goal_pub_;
-    ros::Subscriber goal_status_sub_;
+    //ros::Subscriber goal_status_sub_;
     ros::Subscriber tag_sub;
     apriltag_ros::AprilTagDetection aim_tag;
     ros::Publisher arm_position_pub;
