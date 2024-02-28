@@ -659,7 +659,7 @@ int main(int argc, char** argv) {
                 goal.type=0;
                 goal.x=1.88;
                 goal.y=-0.05;
-                goal.yaw=3.14;
+                goal.yaw=0;
                 goal_pub.publish(goal);
                 // std::cout << "state = 1 moving to 1.86 -0.1" << std::endl;
                 std::cout << "goal_reached: " << goal_reached << std::endl;
