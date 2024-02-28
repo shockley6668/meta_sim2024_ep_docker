@@ -525,6 +525,14 @@ int main(int argc, char** argv) {
                         state = -1;
                         std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
                     }
+                    if(state == -1 && goal_reached && !detected)
+                        state = 1;
+                    if(goal_reached && !detected)
+                    {
+                        state++;
+                        state %= 3;
+                        goal_reached = false;
+                    }
                     // tar_tag.publish(tag);
                     break;
                 }
@@ -563,6 +571,14 @@ int main(int argc, char** argv) {
                         state = -1;
                         std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
                     }
+                    if(state == -1 && goal_reached && !detected)
+                        state = 2;
+                    if(goal_reached && !detected)
+                    {
+                        state++;
+                        state %= 3;
+                        goal_reached = false;
+                    }
                     break;
                 }
                 else if(found[2])     
@@ -599,6 +615,14 @@ int main(int argc, char** argv) {
                         goal_pub.publish(goal);
                         state = -1;
                         std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
+                    }
+                    if(state == -1 && goal_reached && !detected)
+                        state = 0;
+                    if(goal_reached && !detected)
+                    {
+                        state++;
+                        state %= 3;
+                        goal_reached = false;
                     }
                     break;
                 }
