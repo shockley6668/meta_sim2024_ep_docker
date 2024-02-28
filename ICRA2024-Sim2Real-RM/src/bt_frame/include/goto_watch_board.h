@@ -49,12 +49,9 @@ public:
     {
         // Initialize the action client
         action_client_ = std::make_shared<actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>>("move_base", true);
-        goal_pub_ = node_.advertise<geometry_msgs::PointStamped>("/clicked_point", 6);
-        goal_status_sub_ = node_.subscribe("/cmd_vel", 2, &GotoWatchBoard::goalStatusCallback, this);
         
         reached_flag = false;
-   
-        path_list={{0.226,0},{0.4,0},{0.4,0.8},{0.3,1.25},{0,1.5}};
+
     }
 
     static BT::PortsList providedPorts()
@@ -65,77 +62,61 @@ public:
             OutputPort<int>("target_cube_num3")
         };
     }
-
-    // BT::NodeStatus tick() override
-    // {
-    //     // Get the goal pose from the input port
-    //     //const geometry_msgs::PoseStamped& goal = getInput<geometry_msgs::PoseStamped>("goal");
-
-    //     // Create the goal message for the action
-    //     ROS_INFO("Sending goal");
-    //     while(!action_client_->waitForServer(ros::Duration(5.0))){
-    //     ROS_INFO("Waiting for the move_base action server to come up");
-    //     }
-    //     move_base_msgs::MoveBaseGoal goal_msg;
-    //     goal_msg.target_pose.header.frame_id = "map";
-    //     goal_msg.target_pose.header.stamp = ros::Time::now();
-    //     goal_msg.target_pose.pose.position.x = 0;
-    //     goal_msg.target_pose.pose.position.y = 1.37;
-    //     goal_msg.target_pose.pose.orientation.w = 1.0;
-        
-    //     // Send the goal to the action server
-    //     action_client_->sendGoal(goal_msg);
-
-    //     // Wait for the action to complete
-    //     action_client_->waitForResult();
-
-    //     // Check the result of the action
-    //     if (action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-    //     {
-    //         ROS_INFO("success");
-    //         return BT::NodeStatus::SUCCESS;
-    //     }
-    //     else
-    //     {
-    //         ROS_INFO("failure");
-    //         return BT::NodeStatus::FAILURE;
-    //     }
-    // }
     NodeStatus onStart() override
     {
         // Get the goal pose from the input port
         //const geometry_msgs::PoseStamped& goal = getInput<geometry_msgs::PoseStamped>("goal");
+     
+        second_goal_send=false;
         tag_sub=node_.subscribe("/tag_detections", 1, &GotoWatchBoard::tagCallback,this);
         // Create the goal message for the action
         ROS_INFO("Sending goal");
-        ros::Duration(0.5).sleep();
-        for(int i=0;i<path_list.size();i++){  
-            geometry_msgs::PointStamped p;
-            p.header.frame_id = "map";
-            p.header.stamp = ros::Time::now();
-            p.header.seq = i;
-            p.point.x = path_list[i].x;
-            p.point.y = path_list[i].y;
-            goal_pub_.publish(p);
-            ros::Duration(0.05).sleep();
+        while(!action_client_->waitForServer(ros::Duration(10.0))){
+        ROS_INFO("Waiting for the move_base action server to come up");
         }
+        move_base_msgs::MoveBaseGoal goal_msg;
+        goal_msg.target_pose.header.frame_id = "map";
+        goal_msg.target_pose.header.stamp = ros::Time::now();
+        goal_msg.target_pose.pose.position.x = 0.6;
+        goal_msg.target_pose.pose.position.y = 0.8;
+        goal_msg.target_pose.pose.orientation.w = 1.0;
+        action_client_->sendGoal(goal_msg);
         return BT::NodeStatus::RUNNING;
     }
     NodeStatus onRunning() override
     {
-        if(reached_flag&&target_cube_num.size()==3){
-            //reached_flag=false;
-            for (size_t i = 0; i < target_cube_num.size(); i++)
-            {
-                cout<<target_cube_num[i]<<endl;
-            }
-            setOutput<int>("target_cube_num1",target_cube_num[0]);
-            setOutput<int>("target_cube_num2",target_cube_num[1]);
-            setOutput<int>("target_cube_num3",target_cube_num[2]);
-            tag_sub.shutdown();
-            return BT::NodeStatus::SUCCESS;
+        if (action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED&&second_goal_send==false)
+        {
+            ROS_INFO("success");
+            ros::Duration(0.2).sleep();
+            move_base_msgs::MoveBaseGoal goal_msg;
+            goal_msg.target_pose.header.frame_id = "map";
+            goal_msg.target_pose.header.stamp = ros::Time::now();
+            goal_msg.target_pose.pose.position.x = 0;
+            goal_msg.target_pose.pose.position.y = 1.37;
+            goal_msg.target_pose.pose.orientation.w = 1.0;
+            action_client_->sendGoal(goal_msg);
+            second_goal_send=true;
+            
         }
-        
+        action_client_->waitForResult();
+        if (action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED&&second_goal_send==true)
+        {
+            reached_flag=true;
+            if(target_cube_num.size()==3)
+            {
+                for (size_t i = 0; i < target_cube_num.size(); i++)
+                {
+                    cout<<target_cube_num[i]<<endl;
+                }
+                setOutput<int>("target_cube_num1",target_cube_num[0]);
+                setOutput<int>("target_cube_num2",target_cube_num[1]);
+                setOutput<int>("target_cube_num3",target_cube_num[2]);
+                tag_sub.shutdown();
+                return BT::NodeStatus::SUCCESS;
+            }
+          
+        }
         return BT::NodeStatus::RUNNING;
     }
     void onHalted() override
@@ -146,15 +127,7 @@ public:
     }
 
 private:
-    void goalStatusCallback(const geometry_msgs::Twist& msg)
-    {
-        
-        if (msg.linear.z == 1)
-        {
-            ROS_INFO("Goal reached");
-            reached_flag=true;
-        }
-    }
+
     void tagCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr &_msg)
     {
         if(_msg->detections.size()>=6&&reached_flag)
@@ -184,14 +157,12 @@ private:
     }
     ros::NodeHandle node_;
     std::shared_ptr<actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>> action_client_;
-    ros::Publisher goal_pub_;
-    ros::Subscriber goal_status_sub_;
+  
     ros::Subscriber tag_sub;
-    
     bool reached_flag=false;
     vector<int> target_cube_num;
     vector<int> target_cube_num_sort;
     std::vector<Point2D> path_list;
-
+    bool second_goal_send;
 };
 

@@ -15,7 +15,7 @@ public:
     StatefulActionNode(name, config),node_(Handle){
         goal_sub_=node_.subscribe("/ep_next_goal", 1, &SimplePlanner::goalCallback,this);
         goal_status_pubs_=node_.advertise<std_msgs::Int32>("ep_goal_status", 1);
-        cmd_vel_pub_=node_.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+        cmd_pub=node_.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
         goal_pub_ = node_.advertise<geometry_msgs::PointStamped>("/clicked_point", 6);
         move_base_clear = node_.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
         goal_received=false;
@@ -34,9 +34,10 @@ public:
         goal_received=false;
         goal_reached=false;
         move_base_send=false;
+        movebase_reset_try=0;
         return BT::NodeStatus::RUNNING;
     }
-
+    
     NodeStatus onRunning() override
     {
         if(goal_received)
@@ -71,12 +72,35 @@ public:
                         //clear costmap
                         std_srvs::Empty srv;
                         move_base_clear.call(srv);
-                        geometry_msgs::Twist recover;
-                        recover.linear.x=0.1;
-                        cmd_vel_pub_.publish(recover);
-                        ros::Duration(0.4).sleep();
-                        recover.linear.x=0;
-                        cmd_vel_pub_.publish(recover);
+                        if(movebase_reset_try==0)
+                        {
+                            sendBaseVel(0.4,0,0);
+                            ros::Duration(0.5).sleep();
+                            sendBaseVel(0,0,0);
+                            movebase_reset_try++;
+                        }
+                        else if(movebase_reset_try==1)
+                        {
+                            sendBaseVel(-0.4,0,0);
+                            ros::Duration(0.5).sleep();
+                            sendBaseVel(0,0,0);
+                            movebase_reset_try++;
+                        }
+                        else if(movebase_reset_try==2)
+                        {
+                            sendBaseVel(0,0.4,0);
+                            ros::Duration(0.5).sleep();
+                            sendBaseVel(0,0,0);
+                            movebase_reset_try++;
+                        }
+                        else if(movebase_reset_try==3)
+                        {
+                            sendBaseVel(0,-0.4,0);
+                            ros::Duration(0.5).sleep();
+                            sendBaseVel(0,0,0);
+                            movebase_reset_try=0;
+                        }
+
                         std::cout<<"move base Goal aborted"<<std::endl;
                         move_base_send=false;
                     }
@@ -141,7 +165,17 @@ private:
         goal_=*msg;
         goal_received=true;
     }
-
+    void sendBaseVel(float x,float y,float yaw)
+    {
+        geometry_msgs::Twist twist;
+        twist.linear.x = x;
+        twist.linear.y = y;
+        twist.linear.z = 0;
+        twist.angular.x = 0;
+        twist.angular.y = 0;
+        twist.angular.z = yaw;
+        cmd_pub.publish(twist);
+    }
     void goalStatusCallback(const geometry_msgs::Twist& msg)
     {
         
@@ -158,10 +192,10 @@ private:
     ros::Subscriber goal_status_sub_;
     ros::Publisher goal_status_pubs_;
     ros::ServiceClient move_base_clear;
-    ros::Publisher cmd_vel_pub_;
+    ros::Publisher cmd_pub;
     bool goal_received=false;
     bool goal_reached=false;
-
+    int movebase_reset_try;
     bool move_base_send=false;
     bt_frame::ep_goal goal_;
     //current goal
