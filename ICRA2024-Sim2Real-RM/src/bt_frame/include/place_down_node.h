@@ -34,6 +34,7 @@ public:
         x_pid = PIDController(x_param);
         take_cube_num=-1;
         aim_tag_id=-1;
+        first_place=true;
     }
 
     static BT::PortsList providedPorts()
@@ -262,22 +263,30 @@ private:
         std::cout<<"arm_high:"<<arm_high<<std::endl;
         if(arm_high==0)
         {
-            arm_position.position.x = 0.18;
-            arm_position.position.y = 0.01;
+            if(first_place==true)
+            {
+                arm_position.position.x = 0.23;
+                arm_position.position.y = 0.01;
+                first_place=false;
+            }
+            else{
+                arm_position.position.x = 0.18;
+                arm_position.position.y = 0.01;
+            }
         }
         else if(arm_high==1)
         {
-            arm_position.position.x = 0.18;
+            arm_position.position.x = 0.20;
             arm_position.position.y = 0.06;
         }
         else if(arm_high==2)
         {
-            arm_position.position.x = 0.18;
+            arm_position.position.x = 0.20;
             arm_position.position.y = 0.11;
         }
         else if(arm_high==3)
         {
-            arm_position.position.x = 0.18;
+            arm_position.position.x = 0.20;
             arm_position.position.y = 0.15;
         }
         arm_position_pub.publish(arm_position);
@@ -356,7 +365,7 @@ private:
     bool nav_done;
     bool y_done;
     bool first_tag;
-
+    bool first_place;
     bool high_detected_mode;
     int arm_high;
     vector<double> x_param = {1, 0.01, 0.01};

@@ -38,6 +38,12 @@ namespace robomaster{
         PIDController(double kp, double ki, double kd)
             : kp_(kp), ki_(ki), kd_(kd), prev_error_(0), integral_(0) {}
 
+        void clear_pid()
+        {
+            prev_error_ = 0;
+            integral_ = 0;
+        }
+
         double calculate(double setpoint, double now_measure) {
             double error = setpoint - now_measure;
             double p_out = kp_ * error;
@@ -67,7 +73,7 @@ namespace robomaster{
         PIDController controller_x;
         PIDController controller_y;
         PIDController controller_w;
-        LocalPlanner(ros::NodeHandle& given_nh):nh(given_nh),plan_(false), prune_index_(0),target_yaw(0),controller_x(6,0.01,0.0),controller_y(6,0.01,0.0),controller_w(3,0.03,0.0){
+        LocalPlanner(ros::NodeHandle& given_nh):nh(given_nh),plan_(false), prune_index_(0),target_yaw(0),controller_x(6,0.01,0.0),controller_y(6,0.01,0.0),controller_w(0.2,0.5,1000){
 
            
             nh.param<double>("max_speed", max_speed_, 2.0);
@@ -76,7 +82,7 @@ namespace robomaster{
             max_angle_diff_ = max_angle_diff * M_PI / 180;
             nh.param<double>("p_coeff", p_coeff_, 10.0);
             nh.param<int>("plan_frequency", plan_freq_, 50);
-            nh.param<double>("goal_tolerance", goal_tolerance_, 0.05);
+            nh.param<double>("goal_tolerance", goal_tolerance_, 0.03);
             nh.param<double>("prune_ahead_distance", prune_ahead_dist_, 0.1);
             nh.param<std::string>("global_frame", global_frame_, "odom");
             diff_yaw=0;
@@ -103,6 +109,9 @@ namespace robomaster{
                 plan_ = true;
                 xy_done = false;
                 yaw_done = false;
+                controller_w.clear_pid();
+                controller_x.clear_pid();
+                controller_y.clear_pid();
             }
         }
     private:
@@ -273,7 +282,7 @@ namespace robomaster{
             cmd_vel.linear.x=-controller_x.calculate(0,diff_x);
             cmd_vel.linear.y=-controller_y.calculate(0,diff_y);
             cmd_vel.angular.z=-controller_w.calculate(0,diff_yaw);
-            if(abs(diff_yaw)<0.06)
+            if(abs(diff_yaw)<0.01)
             {
                 cmd_vel.angular.z=0;
                 yaw_done=true;    

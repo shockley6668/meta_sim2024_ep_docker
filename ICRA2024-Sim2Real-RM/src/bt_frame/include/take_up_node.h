@@ -212,7 +212,7 @@ public:
         {
             no_need_block_time++;
         }
-        if(no_need_block_time>30)
+        if(no_need_block_time>10)
         {
             tag_detection_status_sub.shutdown();
             cout<<"No need block"<<endl;
@@ -228,7 +228,8 @@ public:
             twist.angular.y = 0;
             twist.angular.z = 0;
             cmd_pub.publish(twist);
-            ros::Duration(0.05).sleep();
+            return NodeStatus::FAILURE;
+            
         }
         if(!wall_beside && block_detected)
         {   
@@ -346,6 +347,7 @@ public:
         {
             ROS_INFO("The target block was blocked by other tag!");
             tf::Transform transform;
+            
             transform.setOrigin(tf::Vector3(target_tag_map_pose.pose.position.x, target_tag_map_pose.pose.position.y, target_tag_map_pose.pose.position.z));
             tf::Quaternion q(target_tag_map_pose.pose.orientation.x, target_tag_map_pose.pose.orientation.y, target_tag_map_pose.pose.orientation.z, target_tag_map_pose.pose.orientation.w);
             transform.setRotation(q);

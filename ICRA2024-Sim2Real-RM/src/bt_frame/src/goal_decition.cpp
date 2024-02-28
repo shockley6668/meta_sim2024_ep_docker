@@ -28,6 +28,8 @@ geometry_msgs::PoseStamped robot_gobal_pose_;
 std::shared_ptr<tf::TransformListener> tf_listener_;
 tf::StampedTransform tag2map_transform_;
 vector<geometry_msgs::PoseStamped> poses = vector<geometry_msgs::PoseStamped>(6);
+double max_value = std::numeric_limits<double>::max();
+vector<double> weight = {max_value, max_value, max_value, max_value, max_value, max_value};
 vector<vector<int>> grid = {
         {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
         {1, 0, 0, 0, 0, 1, 1, 0, 0, 1},
@@ -100,17 +102,17 @@ void tagCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr & msg)
         if(it.id[0] >= 6)
             continue;
         bool fns = false;
-        for(int i = 0;i < place1.size();i++)
-            if(place1[i] == it.id[0])
-                fns = true;
-        for(int i = 0;i < place2.size();i++)
-            if(place2[i] == it.id[0])
-                fns = true;
-        for(int i = 0;i < place3.size();i++)
-            if(place3[i] == it.id[0])
-                fns = true;
-        if(fns)
-            continue;
+        // for(int i = 0;i < place1.size();i++)
+        //     if(place1[i] == it.id[0])
+        //         fns = true;
+        // for(int i = 0;i < place2.size();i++)
+        //     if(place2[i] == it.id[0])
+        //         fns = true;
+        // for(int i = 0;i < place3.size();i++)
+        //     if(place3[i] == it.id[0])
+        //         fns = true;
+        // if(fns)
+        //     continue;
         geometry_msgs::PoseStamped it_pose;
         it_pose.header = it.pose.header;
         it_pose.pose.position.x = it.pose.pose.pose.position.x;
@@ -123,14 +125,21 @@ void tagCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr & msg)
         TransformPose(tag2map_transform_, it_pose, tag_map_pose);
         if(tag_map_pose.pose.position.z >= 0)
             continue;
-        if(poses[it.id[0]].pose.position.x == 0)
+        double dist_ = 0;
+        dist_ = pow(tag_map_pose.pose.position.x - robot_gobal_pose_.pose.position.x, 2) + pow(tag_map_pose.pose.position.y - robot_gobal_pose_.pose.position.y, 2);
+        double w = dist_ + tag_map_pose.pose.position.y;
+        // if(poses[it.id[0]].pose.position.x == 0)
         {
-            double dist = 0;
-            dist = pow(tag_map_pose.pose.position.x - robot_gobal_pose_.pose.position.x, 2) + pow(tag_map_pose.pose.position.y - robot_gobal_pose_.pose.position.y, 2);
-            if(dist <= 2.0f)
+            // if(dist <= 2.0f)
+            //     poses[it.id[0]] = robot_gobal_pose_;
+            if(w <= weight[it.id[0]])
+            {
+                weight[it.id[0]] = w;
                 poses[it.id[0]] = robot_gobal_pose_;
+            }
         }
-        std::cout << "tag_map_pose: " << tag_map_pose.pose.position.x << " " << tag_map_pose.pose.position.y << " " << tag_map_pose.pose.position.z << std::endl;
+        std::cout << "tag_current_weight" << w << std::endl;
+        std::cout << "tag_weight: " << weight[it.id[0]] << std::endl;
         double dist[4] = {0};
         dist[0] = pow(tag_map_pose.pose.position.x - 0.8, 2) + pow(tag_map_pose.pose.position.y - 1.0, 2);
         dist[1] = pow(tag_map_pose.pose.position.x - 1.86, 2) + pow(tag_map_pose.pose.position.y + 0.1, 2);
@@ -146,7 +155,7 @@ void tagCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr & msg)
                 index = i;
             }
         }
-        std::cout << "index: " << index << std::endl;
+        // std::cout << "index: " << index << std::endl;
         switch (index)
         {
         case 0:
@@ -192,11 +201,11 @@ void tagCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr & msg)
             break;
         }
     }
-    for(int i = 0;i < 6;i++)
-    {
-        if(poses[i].pose.position.x != 0)
-            std::cout << "id = " << i << ": " << poses[i].pose.position.x << " " << poses[i].pose.position.y << std::endl;
-    }
+    // for(int i = 0;i < 6;i++)
+    // {
+    //     if(poses[i].pose.position.x != 0)
+    //         std::cout << "id = " << i << ": " << poses[i].pose.position.x << " " << poses[i].pose.position.y << std::endl;
+    // }
 }
 void no_move_callback(const std_msgs::Int32::ConstPtr &msg)
 {
@@ -264,7 +273,7 @@ void printVector(const vector<T> v)
     }
     cout << endl;
 }
-bool finish_update = false;
+
 int main(int argc, char** argv) {
     ros::init(argc, argv, "goal_decition_node");
     ros::NodeHandle nh;
@@ -277,9 +286,9 @@ int main(int argc, char** argv) {
     ros::Subscriber no_move_sub=nh.subscribe("no_move",10,no_move_callback);
     ros::Subscriber target_num_sub=nh.subscribe<std_msgs::Int32MultiArray>("target_cube_num",10,target_num_callback);
     ros::Publisher position_set_pub = nh.advertise<std_msgs::Int32>("position_state", 10);
-    // ros::Publisher tar_tag = nh.advertise<std_msgs::Int32>("tar_tag", 10);
+    ros::Publisher tar_tag = nh.advertise<std_msgs::Int32>("tar_tag", 10);
     ros::Subscriber taking_tag_sub = nh.subscribe<std_msgs::Int32>("taking_tag_id", 10, [&](const std_msgs::Int32::ConstPtr &msg){
-        std::cout << "now taking tag: " << msg->data << std::endl;
+        // std::cout << "now taking tag: " << msg->data << std::endl;
         for(int i = 0;i < place1.size();i++)
             if(place1[i] == msg->data)
             {
@@ -291,7 +300,6 @@ int main(int argc, char** argv) {
                     {
                         fns = true;
                     }
-                finish_update = true;
                 if(!fns)
                     finish.push_back(msg->data);
                 return;
@@ -307,7 +315,6 @@ int main(int argc, char** argv) {
                     {
                         fns = true;
                     }
-                finish_update = true;
                 if(!fns)
                     finish.push_back(msg->data);
                 return;
@@ -323,7 +330,6 @@ int main(int argc, char** argv) {
                     {
                         fns = true;
                     }
-                finish_update = true;
                 if(!fns)
                     finish.push_back(msg->data);
                 return;
@@ -344,7 +350,6 @@ int main(int argc, char** argv) {
     loop_rate.sleep();
     while (ros::ok())
     {
-        finish_update = false;
         GetGlobalRobotPose(tf_listener_, "map", robot_gobal_pose_);
         if(find_three_state && first_find)
         {
@@ -356,7 +361,7 @@ int main(int argc, char** argv) {
             //according to placex and poses to search target block
             std::cout << "not first_find and find_three_state" << std::endl;
             bool found = false;
-                for(int i = 0;i < 3;i++)
+            for(int i = 0;i < 3;i++)
             {
                 if(std::find(place1.begin(), place1.end(), target_cube_num[i]) != place1.end())
                 {
@@ -379,17 +384,22 @@ int main(int argc, char** argv) {
                         goal.yaw = yaw;
                         goal_pub.publish(goal);
                         state = -1;
-                        std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
+                        // std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
 
                         if(goal_reached && !detected)
                         {
-                            state = 0;
+                            if(state == 0)
+                                state = 1;
+                            else if(state == 1)
+                                state = 2;
+                            else if(state == 2)
+                                state = 0;
                             goal_reached = false;
                         }
                     }
                     break;
                 }
-                else if(std::find(place2.begin(), place2.end(), target_cube_num[i]) != place2.end())
+                if(std::find(place2.begin(), place2.end(), target_cube_num[i]) != place2.end())
                 {
                     found = true;
                     std::cout << "target block id : " << target_cube_num[i] << " found in place2" << std::endl;
@@ -410,17 +420,22 @@ int main(int argc, char** argv) {
                         goal.yaw = yaw;
                         goal_pub.publish(goal);
                         state = -1;
-                        std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
+                        // std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
                         
                         if(goal_reached && !detected)
                         {
-                            state = 1;
+                            if(state == 0)
+                                state = 1;
+                            else if(state == 1)
+                                state = 2;
+                            else if(state == 2)
+                                state = 0;
                             goal_reached = false;
                         }
                     }
                     break;
                 }
-                else if(std::find(place3.begin(), place3.end(), target_cube_num[i]) != place3.end())
+                if(std::find(place3.begin(), place3.end(), target_cube_num[i]) != place3.end())
                 {
                     found = true;
                     std::cout << "target block id : " << target_cube_num[i] << " found in place3" << std::endl;
@@ -441,11 +456,16 @@ int main(int argc, char** argv) {
                         goal.yaw = yaw;
                         goal_pub.publish(goal);
                         state = -1;
-                        std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
+                        // std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
 
                         if(goal_reached && !detected)
                         {
-                            state = 2;
+                            if(state == 0)
+                                state = 1;
+                            else if(state == 1)
+                                state = 2;
+                            else if(state == 2)
+                                state = 0;
                             goal_reached = false;
                         }
                     }
@@ -453,14 +473,19 @@ int main(int argc, char** argv) {
                 }
                 else
                 {
-                    ROS_ERROR("can not find target block");
+                    if(state = 0)
+                        state = 1;
+                    else if(state = 1)
+                        state = 2;
+                    else if(state = 2)
+                        state = 0;
                 }
             }
         }
         else if(!first_find && !find_three_state)
         {
             //according to placex and poses to arrange path
-                std::cout << "not first_find and not find_three_state" << std::endl;
+            std::cout << "not first_find and not find_three_state" << std::endl;
             // bool found = false;
             for(int i = 0;i < 3;i++)
             {
@@ -468,29 +493,19 @@ int main(int argc, char** argv) {
                 int j = 0;
                 for(j = 0;j < place1.size();j++)
                     if(place1[j] != -1)
-                    {
                         found[0] = true;
-                        break;
-                    }
                 if(j == place1.size())
                     found[0] = false;
                 for(j = 0;j < place2.size();j++)
                     if(place2[j] != -1)
-                    {
                         found[1] = true;
-                        break;
-                    }
                 if(j == place2.size())
                     found[1] = false;
                 for(int j = 0;j < place3.size();j++)
                     if(place3[j] != -1)
-                    {
                         found[2] = true;
-                        break;
-                    }
                 if(j == place3.size())  
                     found[2] = false;
-                std::cout << "three status : " << found[0] << " " << found[1] << " " << found[2] << std::endl;
                 if(found[0])
                 {
                     int tag_id;
@@ -499,12 +514,12 @@ int main(int argc, char** argv) {
                         {
                             tag_id = place1[i];
                             // place1[i] = -1;
-                            // finish.push_back(tag_id);
+                            finish.push_back(tag_id);
                             break;
                         }
-                    // std::cout << "tag_id: " << tag_id << " found in place1" << std::endl;
-                    // std_msgs::Int32 tag;
-                    // tag.data = tag_id;
+                    std::cout << "tag_id: " << tag_id << " found in place1" << std::endl;
+                    std_msgs::Int32 tag;
+                    tag.data = tag_id;
                     // place1.erase(place1.begin());
                     if(poses[tag_id].pose.position.x == 0 && poses[tag_id].pose.position.y == 0)
                     {
@@ -523,20 +538,12 @@ int main(int argc, char** argv) {
                         goal.yaw = yaw;
                         goal_pub.publish(goal);
                         state = -1;
-                        std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
+                        // std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
                     }
-                    if(state == -1 && goal_reached && !detected)
-                        state = 1;
-                    if(goal_reached && !detected)
-                    {
-                        state++;
-                        state %= 3;
-                        goal_reached = false;
-                    }
-                    // tar_tag.publish(tag);
+                    tar_tag.publish(tag);
                     break;
                 }
-                else if(found[1])
+                if(found[1])
                 {
                     int tag_id;
                     for(int i = 0;i < place2.size();i++)
@@ -544,13 +551,13 @@ int main(int argc, char** argv) {
                         {
                             tag_id = place2[i];
                             // place2[i] = -1;
-                            // finish.push_back(tag_id);
+                            finish.push_back(tag_id);
                             break;
                         }
-                    // std::cout << "tag_id: " << tag_id << " found in place2" << std::endl;
-                    // std_msgs::Int32 tag;
-                    // tag.data = tag_id;
-                    // tar_tag.publish(tag);
+                    std::cout << "tag_id: " << tag_id << " found in place2" << std::endl;
+                    std_msgs::Int32 tag;
+                    tag.data = tag_id;
+                    tar_tag.publish(tag);
                     // place2.erase(place2.begin());
                     if(poses[tag_id].pose.position.x == 0 && poses[tag_id].pose.position.y == 0)
                     {
@@ -569,19 +576,11 @@ int main(int argc, char** argv) {
                         goal.yaw = yaw;
                         goal_pub.publish(goal);
                         state = -1;
-                        std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
-                    }
-                    if(state == -1 && goal_reached && !detected)
-                        state = 2;
-                    if(goal_reached && !detected)
-                    {
-                        state++;
-                        state %= 3;
-                        goal_reached = false;
+                        // std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
                     }
                     break;
                 }
-                else if(found[2])     
+                if(found[2])     
                 {
                     int tag_id;
                     for(int i = 0;i < place3.size();i++)
@@ -589,13 +588,13 @@ int main(int argc, char** argv) {
                         {
                             tag_id = place3[i];
                             // place3[i] = -1;
-                            // finish.push_back(tag_id);
+                            finish.push_back(tag_id);
                             break;
                         }
-                    // std::cout << "tag_id: " << tag_id << " found in place3" << std::endl;
-                    // std_msgs::Int32 tag;
-                    // tag.data = tag_id;
-                    // tar_tag.publish(tag);
+                    std::cout << "tag_id: " << tag_id << " found in place3" << std::endl;
+                    std_msgs::Int32 tag;
+                    tag.data = tag_id;
+                    tar_tag.publish(tag);
                     // place3.erase(place3.begin());
                     if(poses[tag_id].pose.position.x == 0 && poses[tag_id].pose.position.y == 0)
                     {
@@ -614,17 +613,18 @@ int main(int argc, char** argv) {
                         goal.yaw = yaw;
                         goal_pub.publish(goal);
                         state = -1;
-                        std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
-                    }
-                    if(state == -1 && goal_reached && !detected)
-                        state = 0;
-                    if(goal_reached && !detected)
-                    {
-                        state++;
-                        state %= 3;
-                        goal_reached = false;
+                        // std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
                     }
                     break;
+                }
+                else
+                {
+                    if(state = 0)
+                        state = 1;
+                    else if(state = 1)
+                        state = 2;
+                    else if(state = 2)
+                        state = 0;
                 }
             }
         }
@@ -642,7 +642,7 @@ int main(int argc, char** argv) {
                 goal.yaw=3.14;
                 goal_pub.publish(goal);
 
-                std::cout << "state = 0 moving to 0.8 1.0 3.14" << std::endl;
+                // std::cout << "state = 0 moving to 0.8 1.0 3.14" << std::endl;
                 std::cout << "goal_reached: " << goal_reached << std::endl;
                 if(goal_reached)
                 {
@@ -658,15 +658,15 @@ int main(int argc, char** argv) {
                 bt_frame::ep_goal goal;
                 simple_planner::change_point_num ch_t;
                 ch_t.request.point_num=5;
-                float arrx[5]={1.0,1.55,2.0,2.0,1.93};
-                float arry[5]={1.0,1.0,1.0,0.6,-0.12};
+                float arrx[5]={1.0,1.55,2.0,2.0,1.86};
+                float arry[5]={1.0,1.0,1.0,0.6,-0.1};
                 goal.type=1;
                 // if(change_point_client.call(ch_t))
                 // {
                 //     std::cout<<"change point num to"<<ch_t.request.point_num<<std::endl;
                 //     for (int i=0;i<5;i++) {
                 //     geometry_msgs::PointStamped point_t;
-                //     point_t.pointros.x=arrx[i];
+                //     point_t.point.x=arrx[i];
                 //     point_t.point.y=arry[i];
                 //     goal.points.push_back(point_t);    
                 //     }
@@ -680,7 +680,7 @@ int main(int argc, char** argv) {
                     goal.points.push_back(point_t);    
                 }
                 
-                std::cout << "state = 1 moving to 1.86 -0.1" << std::endl;
+                // std::cout << "state = 1 moving to 1.86 -0.1" << std::endl;
                 std::cout << "goal_reached: " << goal_reached << std::endl;
                 goal_pub.publish(goal);
                 if(goal_reached)
@@ -700,7 +700,7 @@ int main(int argc, char** argv) {
                 goal.yaw= 2.392;
                 goal_pub.publish(goal);
 
-                std::cout << "state = 2 moving to 1.3 2.9 2.392" << std::endl;
+                // std::cout << "state = 2 moving to 1.3 2.9 2.392" << std::endl;
                 std::cout << "goal_reached: " << goal_reached << std::endl;
                 if(goal_reached)
                 {
@@ -731,6 +731,8 @@ int main(int argc, char** argv) {
         printVector<int>(place3);
         std::cout << "finish: ";
         printVector<int>(finish);
+        std::cout << "weight :";
+        printVector<double>(weight);
         for(int i = 0;i < place1.size();i++)
         {
             for(int j = 0;j < finish.size();j++)

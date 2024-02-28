@@ -30,7 +30,7 @@ public:
     NodeStatus onRunning() override
     {
         count++;
-        if(count>10)
+        if(count>6)
         {
             UpdateTransform(tf_listener_, "map", "camera_color_optical_frame",ros::Time(0), cam_to_map);
             geometry_msgs::PoseStamped highest_tag_map_pose;
