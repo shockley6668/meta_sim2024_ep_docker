@@ -4,6 +4,7 @@
 #include "behaviortree_cpp/bt_factory.h"
 #include "std_msgs/Int32.h"
 #include "utility.h"
+#include <chrono>
 using namespace BT;
 class Check_up_done:public StatefulActionNode
 {
@@ -11,6 +12,7 @@ public:
     Check_up_done(ros::NodeHandle& Handle, const std::string& name, const NodeConfig& config):StatefulActionNode(name, config)
     {
         nh = Handle;
+        auto start = std::chrono::high_resolution_clock::now();
         taking_tag_id_pub = nh.advertise<std_msgs::Int32>("taking_tag_id", 10);
     }
     static PortsList providedPorts()
@@ -30,6 +32,13 @@ public:
     NodeStatus onRunning() override
     {
         count++;
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> diff = end-start;
+        std::cout << "Time from start: " << diff.count() << std::endl;
+        if(diff.count() > 250)
+        {
+            return BT::NodeStatus::SUCCESS;
+        }
         if(count>6)
         {
             UpdateTransform(tf_listener_, "map", "camera_color_optical_frame",ros::Time(0), cam_to_map);
@@ -41,6 +50,10 @@ public:
             TransformPose(cam_to_map,highest_tag_pose, highest_tag_map_pose);
             std::cout<<"highest_tag_id: "<<highest_tag.id[0]<<std::endl;
             std::cout << "highest_tag_map_posez: " << highest_tag_map_pose.pose.position.z << std::endl;
+            if(highest_tag_map_pose.pose.position.z > 0.14)
+            {
+                return BT::NodeStatus::SUCCESS;
+            }
             if(highest_tag_map_pose.pose.position.z > 0.12)
             {
                 setOutput<int>("arm_high", 2);
