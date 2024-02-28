@@ -1,6 +1,6 @@
 #!/bin/bash
 SERVER_IMAGE=${SERVER_IMAGE:-rmus2022/server:result_pub_fix}
-CLIENT_IMAGE=${CLIENT_IMAGE:-meta_sim/test:v1.7} # Just for test, if not effect, please change it to your client docker image. 
+CLIENT_IMAGE=${CLIENT_IMAGE:-shockley/meta_sim:v2.0} # Just for test, if not effect, please change it to your client docker image. 
 CLI_EXE=$@
 
 xhost +
@@ -24,7 +24,7 @@ docker run -dit --rm --name sim-server --network net-sim \
 
 sleep 10
 
-docker run -it --name client --network net-sim \
+docker run -it --rm --name client --network net-sim \
 	--cpus=5.6 -m 8192M \
 	-p 1667:1667\
 	-e ROS_MASTER_URI=http://ros-master:11311 \

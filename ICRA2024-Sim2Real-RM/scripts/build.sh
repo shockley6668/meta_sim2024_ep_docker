@@ -3,4 +3,4 @@ CLIENT_IMAGE=${CLIENT_IMAGE:-test}
 docker build . -t $CLIENT_IMAGE 
 
 
-# CLIENT_IMAGE=meta_sim/test:v1.7 bash scripts/build.sh
+# CLIENT_IMAGE=shockley/meta_sim:v2.0 bash scripts/build.sh
