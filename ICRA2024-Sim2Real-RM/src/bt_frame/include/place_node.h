@@ -311,7 +311,7 @@ public:
                     move_base_msgs::MoveBaseGoal goal_msg;
                     goal_msg.target_pose.header.frame_id = "map";
                     goal_msg.target_pose.header.stamp = ros::Time::now();
-                    goal_msg.target_pose.pose.position.x = 1.18;
+                    goal_msg.target_pose.pose.position.x = 1.13;
                     goal_msg.target_pose.pose.position.y = 1.78;
                     tf::Quaternion q=tf::createQuaternionFromYaw(0.0);
                      goal_msg.target_pose.pose.orientation.w = q.w();

@@ -46,7 +46,7 @@ public:
             return BT::NodeStatus::SUCCESS;
         }
         ROS_INFO("continue searching block");
-        if(count>10)
+        if(count>13)
         {
             std_msgs::Int32 msg;
             msg.data = 0;

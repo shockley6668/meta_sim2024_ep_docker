@@ -16,6 +16,8 @@ bool first_find=true;
 int state;
 bool send_flag=false;
 bool detected = false;
+bool switch_lock=false;
+bool switch_mode=false;
 vector <int> place1;
 vector <int> place2;
 vector <int> place3;
@@ -48,6 +50,7 @@ struct Node {
 };
 const int dx[] = {-1, 1, 0, 0, -1, -1, 1, 1};
 const int dy[] = {0, 0, -1, 1, -1, 1, -1, 1};
+
 
 
 vector<pair<int, int>> dijkstra(vector<vector<int>>& grid, Node start, Node end) {
@@ -84,10 +87,6 @@ void goal_status_callback(const std_msgs::Int32::ConstPtr &msg)
     if(msg->data==1)
     {
         goal_reached=true;
-    }
-    if(msg->data==0)
-    {
-        goal_reached=false;
     }
 } 
 void tagCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr & msg)
@@ -131,6 +130,7 @@ void tagCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr & msg)
         if(tag_map_pose.pose.position.z >= 0)
             continue;
         double dist_ = 0;
+        GetGlobalRobotPose(tf_listener_, "map", robot_gobal_pose_);
         dist_ = pow(tag_map_pose.pose.position.x - robot_gobal_pose_.pose.position.x, 2) + pow(tag_map_pose.pose.position.y - robot_gobal_pose_.pose.position.y, 2);
         double w = dist_ + tag_map_pose.pose.position.y;
         // if(poses[it.id[0]].pose.position.x == 0)
@@ -338,7 +338,7 @@ int main(int argc, char** argv) {
             //三点巡航
             std::cout << "find_three_state and first_find" << std::endl;
         }
-        else if(!first_find && find_three_state)
+        else if(!first_find && find_three_state &&switch_lock==false)
         {
             //according to placex and poses to search target block
             std::cout << "not first_find and find_three_state" << std::endl;
@@ -355,19 +355,6 @@ int main(int argc, char** argv) {
                     }
                     else
                     {
-                        bt_frame::ep_goal goal;
-                        goal.type = 0;
-                        goal.x = poses[target_cube_num[i]].pose.position.x;
-                        goal.y = poses[target_cube_num[i]].pose.position.y;
-                        tf::Quaternion q;
-                        tf::quaternionMsgToTF(poses[target_cube_num[i]].pose.orientation, q);
-                        double roll, pitch, yaw;
-                        tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
-                        goal.yaw = yaw;
-                        goal_pub.publish(goal);
-                        state = -1;
-                        // std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
-
                         if(goal_reached && !detected)
                         {
                             if(state == 0)
@@ -382,7 +369,26 @@ int main(int argc, char** argv) {
                                 state = 0;
                             std::cout << "state : " << state << std::endl;
                             goal_reached = false;
+                            switch_mode=true;
                         }
+                        if(switch_mode==false)
+                        {
+                            bt_frame::ep_goal goal;
+                            goal.type = 0;
+                            goal.x = poses[target_cube_num[i]].pose.position.x;
+                            goal.y = poses[target_cube_num[i]].pose.position.y;
+                            tf::Quaternion q;
+                            tf::quaternionMsgToTF(poses[target_cube_num[i]].pose.orientation, q);
+                            double roll, pitch, yaw;
+                            tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+                            goal.yaw = yaw;
+                            goal_pub.publish(goal);
+                            state = -1;
+                        }
+                        
+                        // std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
+
+                        
                     }
                     break;
                 }
@@ -390,25 +396,13 @@ int main(int argc, char** argv) {
                 {
                     found = true;
                     std::cout << "target block id : " << target_cube_num[i] << " found in place2" << std::endl;
-                    bt_frame::ep_goal goal;
+                    
                     if(poses[target_cube_num[i]].pose.position.x == 0 && poses[target_cube_num[i]].pose.position.y == 0)
                     {
                         state = 1;
                     }
                     else
                     {
-                        goal.type = 0;
-                        goal.x = poses[target_cube_num[i]].pose.position.x;
-                        goal.y = poses[target_cube_num[i]].pose.position.y;
-                        tf::Quaternion q;
-                        tf::quaternionMsgToTF(poses[target_cube_num[i]].pose.orientation, q);
-                        double roll, pitch, yaw;
-                        tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
-                        goal.yaw = yaw;
-                        goal_pub.publish(goal);
-                        state = -1;
-                        // std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
-                        
                         if(goal_reached && !detected)
                         {
                             if(state == 0)
@@ -423,7 +417,26 @@ int main(int argc, char** argv) {
                                 state = 0;
                             std::cout << "state : " << state << std::endl;
                             goal_reached = false;
+                            switch_mode=true;
                         }
+                        if(switch_mode==false)
+                        {
+                            bt_frame::ep_goal goal;
+                            goal.type = 0;
+                            goal.x = poses[target_cube_num[i]].pose.position.x;
+                            goal.y = poses[target_cube_num[i]].pose.position.y;
+                            tf::Quaternion q;
+                            tf::quaternionMsgToTF(poses[target_cube_num[i]].pose.orientation, q);
+                            double roll, pitch, yaw;
+                            tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+                            goal.yaw = yaw;
+                            goal_pub.publish(goal);
+                            state = -1;
+                        }
+                        
+                        // std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
+                        
+                  
                     }
                     break;
                 }
@@ -437,19 +450,6 @@ int main(int argc, char** argv) {
                     }
                     else
                     {
-                        bt_frame::ep_goal goal;
-                        goal.type = 0;
-                        goal.x = poses[target_cube_num[i]].pose.position.x;
-                        goal.y = poses[target_cube_num[i]].pose.position.y;
-                        tf::Quaternion q;
-                        tf::quaternionMsgToTF(poses[target_cube_num[i]].pose.orientation, q);
-                        double roll, pitch, yaw;
-                        tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
-                        goal.yaw = yaw;
-                        goal_pub.publish(goal);
-                        state = -1;
-                        // std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
-
                         if(goal_reached && !detected)
                         {
                             if(state == 0)
@@ -464,6 +464,21 @@ int main(int argc, char** argv) {
                                 state = 0;
                             std::cout << "state : " << state << std::endl;
                             goal_reached = false;
+                            switch_mode=true;
+                        }
+                        if(switch_mode==false)
+                        {
+                            bt_frame::ep_goal goal;
+                            goal.type = 0;
+                            goal.x = poses[target_cube_num[i]].pose.position.x;
+                            goal.y = poses[target_cube_num[i]].pose.position.y;
+                            tf::Quaternion q;
+                            tf::quaternionMsgToTF(poses[target_cube_num[i]].pose.orientation, q);
+                            double roll, pitch, yaw;
+                            tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+                            goal.yaw = yaw;
+                            goal_pub.publish(goal);
+                            state = -1;
                         }
                     }
                     break;
@@ -481,230 +496,50 @@ int main(int argc, char** argv) {
                         state = 0;
                     else if(state == -1)
                         state = 0;
+                    switch_mode=true;
                     std::cout << "state : " << state << std::endl;
             }
         }
-        else if(!first_find && !find_three_state)
+        else if(!first_find && !find_three_state && switch_lock==false)
         {
             //according to placex and poses to arrange path
             std::cout << "not first_find and not find_three_state" << std::endl;
             // bool found = false;
-            for(int i = 0;i < 3;i++)
+
+            bool found[3] = {false};
+            int j = 0;
+            for(j = 0;j < place1.size();j++)
+                if(place1[j] != -1)
+                {
+                    found[0] = true;
+                    break;
+                }
+            if(j == place1.size())
+                found[0] = false;
+            for(j = 0;j < place2.size();j++)
+                if(place2[j] != -1)
+                {
+                    found[1] = true;
+                    break;
+                }
+            if(j == place2.size())
+                found[1] = false;
+            for(int j = 0;j < place3.size();j++)
+                if(place3[j] != -1)
+                {
+                    found[2] = true;
+                    break;
+                }
+            if(j == place3.size())  
+                found[2] = false;
+            if(found[0])
             {
-                bool found[3] = {false};
-                int j = 0;
-                for(j = 0;j < place1.size();j++)
-                    if(place1[j] != -1)
-                    {
-                        found[0] = true;
-                        break;
-                    }
-                if(j == place1.size())
-                    found[0] = false;
-                for(j = 0;j < place2.size();j++)
-                    if(place2[j] != -1)
-                    {
-                        found[1] = true;
-                        break;
-                    }
-                if(j == place2.size())
-                    found[1] = false;
-                for(int j = 0;j < place3.size();j++)
-                    if(place3[j] != -1)
-                    {
-                        found[2] = true;
-                        break;
-                    }
-                if(j == place3.size())  
-                    found[2] = false;
-                if(found[0])
-                {
-                    int tag_id;
-                    for(int i = 0;i < place1.size();i++)
-                        if(place1[i] != -1)
-                        {
-                            tag_id = place1[i];
-                            // place1[i] = -1;
-                            if(std::find(finish.begin(), finish.end(), tag_id) == finish.end());
-                            {
-                                // finish.push_back(tag_id);
-                                std_msgs::Int32 t;
-                                t.data = tag_id;
-                                test.publish(t);
-                            }
-                            break;
-                        }
-                    std::cout << "tag_id: " << tag_id << " found in place1" << std::endl;
-                    std_msgs::Int32 tag;
-                    tag.data = tag_id;
-                    // place1.erase(place1.begin());
-                    if(poses[tag_id].pose.position.x == 0 && poses[tag_id].pose.position.y == 0)
-                    {
-                        state = 0;
-                    }
-                    else
-                    {
-                        bt_frame::ep_goal goal;
-                        goal.type = 0;
-                        goal.x = poses[tag_id].pose.position.x;
-                        goal.y = poses[tag_id].pose.position.y;
-                        tf::Quaternion q;
-                        tf::quaternionMsgToTF(poses[tag_id].pose.orientation, q);
-                        double roll, pitch, yaw;
-                        tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
-                        goal.yaw = yaw;
-                        goal_pub.publish(goal);
-                        state = -1;
-                        // std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
-                    }
-                    tar_tag.publish(tag);
-                    if(goal_reached && !detected)
-                    {
-                        if(state == 0)
-                            state = 1;
-                        else if(state == 1)
-                                state = 2;
-                        else if(state == 2)
-                            state = 0;
-                        else if(state == 3)
-                            state = 0;
-                        else if(state == -1)
-                            state = 0;
-                        std::cout << "state : " << state << std::endl;
-                        goal_reached = false;
-                    }
-                    break;
-                }
-                if(found[1])
-                {
-                    int tag_id;
-                    for(int i = 0;i < place2.size();i++)
-                        if(place2[i] != -1)
-                        {
-                            tag_id = place2[i];
-                            // place2[i] = -1;
-                            if(std::find(finish.begin(), finish.end(), tag_id) == finish.end());
-                            {
-                                // finish.push_back(tag_id);
-                                std_msgs::Int32 t;
-                                t.data = tag_id;
-                                test.publish(t);
-                            }
-                            break;
-                        }
-                    std::cout << "tag_id: " << tag_id << " found in place2" << std::endl;
-                    std_msgs::Int32 tag;
-                    tag.data = tag_id;
-                    tar_tag.publish(tag);
-                    // place2.erase(place2.begin());
-                    if(poses[tag_id].pose.position.x == 0 && poses[tag_id].pose.position.y == 0)
-                    {
-                        state = 1;
-                    }
-                    else
-                    {
-                        bt_frame::ep_goal goal;
-                        goal.type = 0;
-                        goal.x = poses[tag_id].pose.position.x;
-                        goal.y = poses[tag_id].pose.position.y;
-                        tf::Quaternion q;
-                        tf::quaternionMsgToTF(poses[tag_id].pose.orientation, q);
-                        double roll, pitch, yaw;
-                        tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
-                        goal.yaw = yaw;
-                        goal_pub.publish(goal);
-                        state = -1;
-                        // std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
-                    }
-                    if(goal_reached && !detected)
-                    {
-                        if(state == 0)
-                            state = 1;
-                        else if(state == 1)
-                                state = 2;
-                        else if(state == 2)
-                            state = 0;
-                        else if(state == 3)
-                            state = 0;
-                        else if(state == -1)
-                            state = 0;
-                        std::cout << "state : " << state << std::endl;
-                        goal_reached = false;
-                    }
-                    break;
-                }
-                if(found[2])     
-                {
-                    int tag_id;
-                    for(int i = 0;i < place3.size();i++)
-                        if(place3[i] != -1)
-                        {
-                            tag_id = place3[i];
-                            // place3[i] = -1;
-                            if(std::find(finish.begin(), finish.end(), tag_id) == finish.end());
-                            {
-                                // finish.push_back(tag_id);
-                                std_msgs::Int32 t;
-                                t.data = tag_id;
-                                test.publish(t);
-                            }
-                            break;
-                        }
-                    std::cout << "tag_id: " << tag_id << " found in place3" << std::endl;
-                    std_msgs::Int32 tag;
-                    tag.data = tag_id;
-                    tar_tag.publish(tag);
-                    // place3.erase(place3.begin());
-                    if(poses[tag_id].pose.position.x == 0 && poses[tag_id].pose.position.y == 0)
-                    {
-                        state = 2;
-                    }
-                    else
-                    {
-                        bt_frame::ep_goal goal;
-                        goal.type = 0;
-                        goal.x = poses[tag_id].pose.position.x;
-                        goal.y = poses[tag_id].pose.position.y;
-                        tf::Quaternion q;
-                        tf::quaternionMsgToTF(poses[tag_id].pose.orientation, q);
-                        double roll, pitch, yaw;
-                        tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
-                        goal.yaw = yaw;
-                        goal_pub.publish(goal);
-                        state = -1;
-                        // std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
-                    }
-                    if(goal_reached && !detected)
-                    {
-                        if(state == 0)
-                            state = 1;
-                        else if(state == 1)
-                                state = 2;
-                        else if(state == 2)
-                            state = 0;
-                        else if(state == 3)
-                            state = 0;
-                        else if(state == -1)
-                            state = 0;
-                        std::cout << "state : " << state << std::endl;
-                        goal_reached = false;
-                    }
-                    break;
-                }
-                if(!found[0] && !found[1] && !found[2])
-                {
-                    if(state == 0)
-                        state = 1;
-                    else if(state == 1)
-                        state = 2;
-                    else if(state == 2)
-                        state = 0;
-                    else if(state == 3)
-                        state = 0;
-                    else if(state == -1)
-                        state = 0;
-                    std::cout << "state : " << state << std::endl;
-                }
+                int tag_id;
+            
+                std::cout << "tag_id: " << tag_id << " found in place1" << std::endl;
+                std_msgs::Int32 tag;
+                tag.data = tag_id;
+                // place1.erase(place1.begin());
                 if(goal_reached && !detected)
                 {
                     if(state == 0)
@@ -719,8 +554,151 @@ int main(int argc, char** argv) {
                         state = 0;
                     std::cout << "state : " << state << std::endl;
                     goal_reached = false;
+                    switch_mode=true;
+                    place1.resize(0);
                 }
+                if(poses[tag_id].pose.position.x == 0 && poses[tag_id].pose.position.y == 0)
+                {
+                    state = 0;
+                }
+                else 
+                {   
+                    if(switch_mode==false)
+                    {
+                        bt_frame::ep_goal goal;
+                        goal.type = 0;
+                        goal.x = poses[tag_id].pose.position.x;
+                        goal.y = poses[tag_id].pose.position.y;
+                        tf::Quaternion q;
+                        tf::quaternionMsgToTF(poses[tag_id].pose.orientation, q);
+                        double roll, pitch, yaw;
+                        tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+                        goal.yaw = yaw;
+                        goal_pub.publish(goal);
+                        state = -1;
+                    }
+     
+                    // std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
+                }
+                tar_tag.publish(tag);
+
+                
             }
+            if(found[1])
+            {
+                int tag_id;
+                std::cout << "tag_id: " << tag_id << " found in place2" << std::endl;
+                std_msgs::Int32 tag;
+                tag.data = tag_id;
+                tar_tag.publish(tag);
+                // place2.erase(place2.begin());
+                if(goal_reached && !detected)
+                {
+                    if(state == 0)
+                        state = 1;
+                    else if(state == 1)
+                        state = 2;
+                    else if(state == 2)
+                        state = 0;
+                    else if(state == 3)
+                        state = 0;
+                    else if(state == -1)
+                        state = 0;
+                    std::cout << "state : " << state << std::endl;
+                    goal_reached = false;
+                    switch_mode=true;
+                    place2.resize(0);
+                }
+                if(poses[tag_id].pose.position.x == 0 && poses[tag_id].pose.position.y == 0)
+                {
+                    state = 1;
+                }
+                else
+                {
+                    if(switch_mode==false)
+                    {
+                        bt_frame::ep_goal goal;
+                        goal.type = 0;
+                        goal.x = poses[tag_id].pose.position.x;
+                        goal.y = poses[tag_id].pose.position.y;
+                        tf::Quaternion q;
+                        tf::quaternionMsgToTF(poses[tag_id].pose.orientation, q);
+                        double roll, pitch, yaw;
+                        tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+                        goal.yaw = yaw;
+                        goal_pub.publish(goal);
+                        state = -1;
+                    }
+                    // std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
+                }
+        
+            }
+            if(found[2])     
+            {
+                int tag_id;
+                for(int i = 0;i < place3.size();i++)
+                std::cout << "tag_id: " << tag_id << " found in place3" << std::endl;
+                std_msgs::Int32 tag;
+                tag.data = tag_id;
+                tar_tag.publish(tag);
+                if(goal_reached && !detected)
+                {
+                    if(state == 0)
+                        state = 1;
+                    else if(state == 1)
+                        state = 2;
+                    else if(state == 2)
+                        state = 0;
+                    else if(state == 3)
+                        state = 0;
+                    else if(state == -1)
+                        state = 0;
+                    std::cout << "state : " << state << std::endl;
+                    goal_reached = false;
+                    switch_mode=true;
+                    place3.resize(0);
+                }
+                // place3.erase(place3.begin());
+                if(poses[tag_id].pose.position.x == 0 && poses[tag_id].pose.position.y == 0)
+                {
+                    state = 2;
+                }
+                else
+                {
+                    if(switch_mode==false)
+                    {
+                        bt_frame::ep_goal goal;
+                        goal.type = 0;
+                        goal.x = poses[tag_id].pose.position.x;
+                        goal.y = poses[tag_id].pose.position.y;
+                        tf::Quaternion q;
+                        tf::quaternionMsgToTF(poses[tag_id].pose.orientation, q);
+                        double roll, pitch, yaw;
+                        tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+                        goal.yaw = yaw;
+                        goal_pub.publish(goal);
+                        state = -1;
+                    }
+                    // std::cout << "target pose : " << goal.x << " " << goal.y << " " << goal.yaw << std::endl;
+                }
+
+            }
+            if(!found[0] && !found[1] && !found[2])
+            {
+                if(state == 0)
+                    state = 1;
+                else if(state == 1)
+                    state = 2;
+                else if(state == 2)
+                    state = 0;
+                else if(state == 3)
+                    state = 0;
+                else if(state == -1)
+                    state = 0;
+                switch_mode=true;
+                std::cout << "state : " << state << std::endl;
+            }
+            
         }
         //just for first_find and collecting the position of the blocks
         switch (state)
@@ -728,6 +706,7 @@ int main(int argc, char** argv) {
         case 0:
             //第一阶段 用movebase
             {
+                switch_lock=true;
                 if(!goal_reached)
                 {
                     bt_frame::ep_goal goal;
@@ -747,11 +726,14 @@ int main(int argc, char** argv) {
                 {
                     state++;
                     goal_reached=false;
+                    switch_lock=false;
+                    switch_mode=false;
                 }   
             }
             break;
         case 1:
             {
+                switch_lock=true;
                 // Node start(2 ,1), end(4,1);
                 // vector<pair<int, int>> path = dijkstra(grid, start, end);
                 if(!goal_reached)
@@ -775,11 +757,14 @@ int main(int argc, char** argv) {
                 {
                     state++;
                     goal_reached=false;
+                    switch_lock=false;
+                    switch_mode=false;
                 }
             }
             break;
         case 2:
             {
+                switch_lock=true;
                 if(!goal_reached)
                 {
                     bt_frame::ep_goal goal;
@@ -802,6 +787,8 @@ int main(int argc, char** argv) {
                     state++;
                     goal_reached=false;
                     first_find=false;
+                    switch_lock=false;
+                    switch_mode=false;
                 }
             }
             break;

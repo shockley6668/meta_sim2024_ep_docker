@@ -15,6 +15,7 @@
 #include "PIDController.h"
 #include "utility.h"
 #include <tf/transform_broadcaster.h>
+#include "kalmanFilter.h"
 using namespace BT;
 class Take : public StatefulActionNode
 {
@@ -38,7 +39,7 @@ public:
         take_node_state=0;
         target_cube_num_pub=node_.advertise<std_msgs::Int32MultiArray>("target_cube_num", 10);
         taking_tag_id_pub = node_.advertise<std_msgs::Int32>("taking_tag_id", 10);
-
+        
     }
     void reset_arm()
     {
@@ -123,6 +124,7 @@ public:
                         if(msg->detections[i].id[0]==target_cube_num[0] || msg->detections[i].id[0]==target_cube_num[1] || msg->detections[i].id[0]==target_cube_num[2])
                         {
                             tag_id = msg->detections[i].id[0];
+                            
                             break;
                         }
                     }
@@ -153,6 +155,7 @@ public:
                     }
                     else if(detected_id.size()==2)
                     {
+                        
                         tag_detection_pose.header = msg->detections[detected_id[0]].pose.header;
                         tag_detection_pose.pose.pose.position.x = (msg->detections[detected_id[0]].pose.pose.pose.position.x + msg->detections[detected_id[1]].pose.pose.pose.position.x)/2;
                         tag_detection_pose.pose.pose.position.y = (msg->detections[detected_id[0]].pose.pose.pose.position.y + msg->detections[detected_id[1]].pose.pose.pose.position.y)/2;
@@ -163,7 +166,10 @@ public:
                         tag_detection_pose.pose.pose.orientation.w = msg->detections[detected_id[0]].pose.pose.pose.orientation.w;
                         block_detected = true;
                     }
-                    
+                    tag_kalman_filter.Predict();
+                    tag_kalman_filter.Update(Eigen::Vector2d(tag_detection_pose.pose.pose.position.x,tag_detection_pose.pose.pose.position.z));
+                    tag_detection_pose.pose.pose.position.x = tag_kalman_filter.GetState()(0);
+                    tag_detection_pose.pose.pose.position.z = tag_kalman_filter.GetState()(1);
                 }
                 
             }
@@ -187,7 +193,7 @@ public:
         auto tu2=getInput<int>("target_cube_num2");
         auto tu3=getInput<int>("target_cube_num3");
         target_cube_num={tu1.value(),tu2.value(),tu3.value()};
-        
+        map_tag_clear_pid=false;
         tag_detection_status_sub = node_.subscribe("/tag_detections", 10, &Take::poseCallback, this);
         position_state_sub=node_.subscribe("/position_state", 10, &Take::positionStateCallback, this);
         
@@ -198,6 +204,7 @@ public:
         block_detected = false;
         wall_beside = false;
         difilute_position=false;
+        tag_kalman_filter=KalmanFilter2D(Eigen::Vector2d(0,0),0.01,0.02);
         return NodeStatus::RUNNING;
     }
     NodeStatus onRunning() override
@@ -349,6 +356,12 @@ public:
 
         if(!block_detected && target_tag_map_pose.header.frame_id=="map")
         {
+            if(map_tag_clear_pid==false)
+            {
+                x_pid.clear_pid();
+                y_pid.clear_pid();
+                map_tag_clear_pid=true;
+            }
             ROS_INFO("The target block was blocked by other tag!");
             tf::Transform transform;
             transform.setOrigin(tf::Vector3(target_tag_map_pose.pose.position.x, target_tag_map_pose.pose.position.y, target_tag_map_pose.pose.position.z));
@@ -453,11 +466,11 @@ private:
     geometry_msgs::PoseStamped target_tag_map_pose;
     int tag_id;
     int take_node_state;
-
+    bool map_tag_clear_pid;
     const float x_target = 0.15;
     const float y_target = 0.045;
     int no_need_block_time;
-
+    KalmanFilter2D tag_kalman_filter;
     PIDController x_pid, y_pid, z_pid;
     vector <int> target_cube_num;
     vector<double> x_param = {1.1, 0.01, 0.01};

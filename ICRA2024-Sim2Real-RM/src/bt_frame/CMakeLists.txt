@@ -21,6 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
   behaviortree_cpp
   apriltag_ros
   message_generation
+  tf2_eigen
 )
 
 ## System dependencies are found with CMake's conventions

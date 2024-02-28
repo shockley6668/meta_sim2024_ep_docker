@@ -11,7 +11,11 @@ class PIDController {
             ki_ = param[1];
             kd_ = param[2];
         }
-
+        void clear_pid()
+        {
+            prev_error_ = 0;
+            integral_ = 0;
+        }
         double calculate(double setpoint, double now_measure) {
             double error = setpoint - now_measure;
             double p_out = kp_ * error;

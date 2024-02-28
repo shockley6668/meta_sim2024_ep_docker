@@ -15,6 +15,7 @@
 #include "PIDController.h"
 #include "utility.h"
 #include <tf/transform_broadcaster.h>
+#include "kalmanFilter.h"
 using namespace BT;
 class Take_Up : public StatefulActionNode
 {
@@ -123,6 +124,7 @@ public:
                     for(size_t i = 0; i < msg->detections.size(); i++)
                     {
                             tag_id = msg->detections[i].id[0];
+                            
                             break;
                     }
                 }
@@ -162,7 +164,10 @@ public:
                         tag_detection_pose.pose.pose.orientation.w = msg->detections[detected_id[0]].pose.pose.pose.orientation.w;
                         block_detected = true;
                     }
-
+                    tag_kalman_filter.Predict();
+                    tag_kalman_filter.Update(Eigen::Vector2d(tag_detection_pose.pose.pose.position.x,tag_detection_pose.pose.pose.position.z));
+                    tag_detection_pose.pose.pose.position.x = tag_kalman_filter.GetState()(0);
+                    tag_detection_pose.pose.pose.position.z = tag_kalman_filter.GetState()(1);
                 }
 
             }
@@ -198,6 +203,8 @@ public:
         block_detected = false;
         wall_beside = false;
         difilute_position=false;
+        map_tag_clear_pid=false;
+        tag_kalman_filter=KalmanFilter2D(Eigen::Vector2d(0,0),0.01,0.02);
         return NodeStatus::RUNNING;
     }
     NodeStatus onRunning() override
@@ -347,7 +354,12 @@ public:
         {
             ROS_INFO("The target block was blocked by other tag!");
             tf::Transform transform;
-            
+            if(map_tag_clear_pid==false)
+            {
+                x_pid.clear_pid();
+                y_pid.clear_pid();
+                map_tag_clear_pid=true;
+            }
             transform.setOrigin(tf::Vector3(target_tag_map_pose.pose.position.x, target_tag_map_pose.pose.position.y, target_tag_map_pose.pose.position.z));
             tf::Quaternion q(target_tag_map_pose.pose.orientation.x, target_tag_map_pose.pose.orientation.y, target_tag_map_pose.pose.orientation.z, target_tag_map_pose.pose.orientation.w);
             transform.setRotation(q);
@@ -445,11 +457,11 @@ private:
     geometry_msgs::PoseStamped target_tag_map_pose;
     int tag_id;
     int take_node_state;
-
+    bool map_tag_clear_pid;
     const float x_target = 0.15;
     const float y_target = 0.045;
     int no_need_block_time;
-
+    KalmanFilter2D tag_kalman_filter;
     PIDController x_pid, y_pid, z_pid;
     vector <int> target_cube_num;
     vector<double> x_param = {1.1, 0.01, 0.01};
