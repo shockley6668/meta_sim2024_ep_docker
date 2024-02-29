@@ -247,7 +247,7 @@ public:
                     ros::Duration(1).sleep();
                     open_gripper();
                     ros::Duration(1).sleep();
-                    sendBaseVel(-0.2,0,0);
+                    sendBaseVel(-0.3,0,0);
                     reset_arm();
                     ros::Duration(1.2).sleep();
                     sendBaseVel(0,0,0);
@@ -299,7 +299,7 @@ private:
         else if(arm_high==2)
         {
             arm_position.position.x = 0.18;
-            arm_position.position.y = 0.12;
+            arm_position.position.y = 0.11;
         }
         else if(arm_high==3)
         {

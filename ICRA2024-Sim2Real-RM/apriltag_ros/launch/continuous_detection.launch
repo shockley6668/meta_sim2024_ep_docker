@@ -14,7 +14,7 @@
 
 
   <!-- apriltag_ros continuous detection node -->
-  <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node" clear_params="true" output="screen" launch-prefix="$(arg launch_prefix)">
+  <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node" respawn="true" clear_params="true" output="screen" launch-prefix="$(arg launch_prefix)">
     <!-- Remap topics from those used in code to those on the ROS network -->
     <remap from="image_rect" to="/camera/color/image_raw" />
     <remap from="camera_info" to="/camera/color/camera_info" />

@@ -137,7 +137,7 @@ void tagCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr & msg)
         {
             // if(dist <= 2.0f)
             //     poses[it.id[0]] = robot_gobal_pose_;
-            if(w <= weight[it.id[0]] && dist_ >= 0.3 && dist_ <= 1.3)
+            if(w <= weight[it.id[0]] && dist_ >= 0.45 && dist_ <= 1.8)
             {
                 weight[it.id[0]] = w;
                 poses[it.id[0]] = robot_gobal_pose_;
