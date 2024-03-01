@@ -9,6 +9,7 @@
 #include "apriltag_ros/AprilTagDetectionArray.h"
 #include "std_msgs/Int32MultiArray.h"
 #include "utility.h"
+#include <stdexcept>
 using namespace std;
 
 bool goal_reached=false;
@@ -647,30 +648,38 @@ int main(int argc, char** argv) {
                         tag_id = k;
                         break;
                     }
-                if(poses[tag_id].pose.position.x == 0 && poses[tag_id].pose.position.y == 0)
+                try
                 {
-                    state = 0;
-                    std::cout << "loop to place" << state + 1 << std::endl;
-                    switch_mode = true;
-                }
-                else
-                {   
-                    if(switch_mode==false)
+                    if(poses[tag_id].pose.position.x == 0 && poses[tag_id].pose.position.y == 0)
                     {
-                        bt_frame::ep_goal goal;
-                        goal.type = 0;
-                        goal.x = poses[tag_id].pose.position.x;
-                        goal.y = poses[tag_id].pose.position.y;
-                        tf::Quaternion q;
-                        tf::quaternionMsgToTF(poses[tag_id].pose.orientation, q);
-                        double roll, pitch, yaw;
-                        tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
-                        goal.yaw = yaw;
-                        goal_pub.publish(goal);
-                        state = -1;
-                        std::cout << "target position : " << goal.x << " " << goal.y << std::endl;
+                        state = 0;
+                        std::cout << "loop to place" << state + 1 << std::endl;
+                        switch_mode = true;
                     }
-                }       
+                    else
+                    {   
+                        if(switch_mode==false)
+                        {
+                            bt_frame::ep_goal goal;
+                            goal.type = 0;
+                            goal.x = poses[tag_id].pose.position.x;
+                            goal.y = poses[tag_id].pose.position.y;
+                            tf::Quaternion q;
+                            tf::quaternionMsgToTF(poses[tag_id].pose.orientation, q);
+                            double roll, pitch, yaw;
+                            tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+                            goal.yaw = yaw;
+                            goal_pub.publish(goal);
+                            state = -1;
+                            std::cout << "target position : " << goal.x << " " << goal.y << std::endl;
+                        }
+                    } 
+                }
+                catch(const std::out_of_range& e)
+                {
+                    std::cerr << e.what() << '\n';
+                }
+                      
             }
             if(found[1])
             {
@@ -707,30 +716,38 @@ int main(int argc, char** argv) {
                         tag_id = k;
                         break;
                     }
-                if(poses[tag_id].pose.position.x == 0 && poses[tag_id].pose.position.y == 0)
+                try
                 {
-                    state = 1;
-                    std::cout << "loop to place" << state + 1 << std::endl;
-                    switch_mode = true;
-                }
-                else
-                {
-                    if(switch_mode==false)
+                    if(poses[tag_id].pose.position.x == 0 && poses[tag_id].pose.position.y == 0)
                     {
-                        bt_frame::ep_goal goal;
-                        goal.type = 0;
-                        goal.x = poses[tag_id].pose.position.x;
-                        goal.y = poses[tag_id].pose.position.y;
-                        tf::Quaternion q;
-                        tf::quaternionMsgToTF(poses[tag_id].pose.orientation, q);
-                        double roll, pitch, yaw;
-                        tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
-                        goal.yaw = yaw;
-                        goal_pub.publish(goal);
-                        std::cout << "target position : " << goal.x << " " << goal.y << std::endl;
-                        state = -1;
+                        state = 1;
+                        std::cout << "loop to place" << state + 1 << std::endl;
+                        switch_mode = true;
+                    }
+                    else
+                    {
+                        if(switch_mode==false)
+                        {
+                            bt_frame::ep_goal goal;
+                            goal.type = 0;
+                            goal.x = poses[tag_id].pose.position.x;
+                            goal.y = poses[tag_id].pose.position.y;
+                            tf::Quaternion q;
+                            tf::quaternionMsgToTF(poses[tag_id].pose.orientation, q);
+                            double roll, pitch, yaw;
+                            tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+                            goal.yaw = yaw;
+                            goal_pub.publish(goal);
+                            std::cout << "target position : " << goal.x << " " << goal.y << std::endl;
+                            state = -1;
+                        }
                     }
                 }
+                catch(const std::out_of_range& e)
+                {
+                    ROS_ERROR("error: %s", e.what());
+                }
+                
             }
             if(found[2])     
             {
@@ -767,30 +784,38 @@ int main(int argc, char** argv) {
                         tag_id = k;
                         break;
                     }
-                if(poses[tag_id].pose.position.x == 0 && poses[tag_id].pose.position.y == 0)
+                try
                 {
-                    state = 2;
-                    std::cout << "loop to place" << state + 1 << std::endl;
-                    switch_mode = true;
-                }
-                else
-                {
-                    if(switch_mode==false)
+                    if(poses[tag_id].pose.position.x == 0 && poses[tag_id].pose.position.y == 0)
                     {
-                        bt_frame::ep_goal goal;
-                        goal.type = 0;
-                        goal.x = poses[tag_id].pose.position.x;
-                        goal.y = poses[tag_id].pose.position.y;
-                        tf::Quaternion q;
-                        tf::quaternionMsgToTF(poses[tag_id].pose.orientation, q);
-                        double roll, pitch, yaw;
-                        tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
-                        goal.yaw = yaw;
-                        goal_pub.publish(goal);
-                        std::cout << "target position : " << goal.x << " " << goal.y << std::endl;
-                        state = -1;
+                        state = 2;
+                        std::cout << "loop to place" << state + 1 << std::endl;
+                        switch_mode = true;
+                    }
+                    else
+                    {
+                        if(switch_mode==false)
+                        {
+                            bt_frame::ep_goal goal;
+                            goal.type = 0;
+                            goal.x = poses[tag_id].pose.position.x;
+                            goal.y = poses[tag_id].pose.position.y;
+                            tf::Quaternion q;
+                            tf::quaternionMsgToTF(poses[tag_id].pose.orientation, q);
+                            double roll, pitch, yaw;
+                            tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+                            goal.yaw = yaw;
+                            goal_pub.publish(goal);
+                            std::cout << "target position : " << goal.x << " " << goal.y << std::endl;
+                            state = -1;
+                        }
                     }
                 }
+                catch(const std::out_of_range& e)
+                {
+                    std::cerr << e.what() << '\n';
+                }
+                
             }
             if(!found[0] && !found[1] && !found[2])
             {
