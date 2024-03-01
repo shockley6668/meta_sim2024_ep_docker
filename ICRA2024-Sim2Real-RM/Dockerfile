@@ -21,7 +21,7 @@ RUN apt-get update && \
      rm -rf /var/lib/apt/lists/* && apt-get clean
 RUN rosdep install --from-paths src --ignore-src -r -y
 #Install extra dependencies with pip
-RUN pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple scipy
+# RUN pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple scipy
 
 
 

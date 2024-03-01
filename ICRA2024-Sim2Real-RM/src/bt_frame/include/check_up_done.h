@@ -51,13 +51,7 @@ public:
                 tag_sub.shutdown();
                 return BT::NodeStatus::SUCCESS;
             }
-            if(highest_tag_map_pose.pose.position.z > 0.10)
-            {
-                setOutput<int>("arm_high", 2);
-                tag_sub.shutdown();
-                return BT::NodeStatus::FAILURE;
-            }
-            if(highest_tag_map_pose.pose.position.z > 0.10)
+            if(highest_tag_map_pose.pose.position.z > 0.09)
             {
                 setOutput<int>("arm_high", 2);
                 tag_sub.shutdown();

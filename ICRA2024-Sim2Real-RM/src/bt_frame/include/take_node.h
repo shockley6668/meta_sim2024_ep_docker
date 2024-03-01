@@ -149,8 +149,18 @@ public:
                     }
                     else if(detected_id.size()==1)
                     {
+
                         
                         tag_detection_pose = msg->detections[detected_id[0]].pose;
+                        if(tag_id==0)
+                        {
+                            tag_detection_pose.pose.pose.position.x+=0.02;
+                        }
+                        
+                        tag_kalman_filter.Predict();
+                        tag_kalman_filter.Update(Eigen::Vector2d(tag_detection_pose.pose.pose.position.x,tag_detection_pose.pose.pose.position.z));
+                        tag_detection_pose.pose.pose.position.x = tag_kalman_filter.GetState()(0);
+                        tag_detection_pose.pose.pose.position.z = tag_kalman_filter.GetState()(1);
                         block_detected = true;
                     }
                     else if(detected_id.size()==2)
@@ -164,12 +174,17 @@ public:
                         tag_detection_pose.pose.pose.orientation.y = msg->detections[detected_id[0]].pose.pose.pose.orientation.y;
                         tag_detection_pose.pose.pose.orientation.z = msg->detections[detected_id[0]].pose.pose.pose.orientation.z;
                         tag_detection_pose.pose.pose.orientation.w = msg->detections[detected_id[0]].pose.pose.pose.orientation.w;
+                        if(tag_id==0)
+                        {
+                            tag_detection_pose.pose.pose.position.x+=0.02;
+                        }
+                        tag_kalman_filter.Predict();
+                        tag_kalman_filter.Update(Eigen::Vector2d(tag_detection_pose.pose.pose.position.x,tag_detection_pose.pose.pose.position.z));
+                        tag_detection_pose.pose.pose.position.x = tag_kalman_filter.GetState()(0);
+                        tag_detection_pose.pose.pose.position.z = tag_kalman_filter.GetState()(1);
                         block_detected = true;
                     }
-                    tag_kalman_filter.Predict();
-                    tag_kalman_filter.Update(Eigen::Vector2d(tag_detection_pose.pose.pose.position.x,tag_detection_pose.pose.pose.position.z));
-                    tag_detection_pose.pose.pose.position.x = tag_kalman_filter.GetState()(0);
-                    tag_detection_pose.pose.pose.position.z = tag_kalman_filter.GetState()(1);
+                    
                 }
                 
             }

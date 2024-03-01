@@ -178,28 +178,28 @@ public:
             move_base_clear.call(srv);
             if(movebase_reset_try==0)
             {
-                sendBaseVel(0.4,0,0);
+                sendBaseVel(0.5,0,0);
                 ros::Duration(0.5).sleep();
                 sendBaseVel(0,0,0);
                 movebase_reset_try++;
             }
             else if(movebase_reset_try==1)
             {
-                sendBaseVel(-0.4,0,0);
+                sendBaseVel(-0.5,0,0);
                 ros::Duration(0.5).sleep();
                 sendBaseVel(0,0,0);
                 movebase_reset_try++;
             }
             else if(movebase_reset_try==2)
             {
-                sendBaseVel(0,0.4,0);
+                sendBaseVel(0,0.5,0);
                 ros::Duration(0.5).sleep();
                 sendBaseVel(0,0,0);
                 movebase_reset_try++;
             }
             else if(movebase_reset_try==3)
             {
-                sendBaseVel(0,-0.4,0);
+                sendBaseVel(0,-0.5,0);
                 ros::Duration(0.5).sleep();
                 sendBaseVel(0,0,0);
                 movebase_reset_try=0;

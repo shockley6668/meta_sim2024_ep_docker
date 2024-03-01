@@ -248,7 +248,7 @@ public:
                     ros::Duration(1).sleep();
                     sendBaseVel(-0.3,0,0);
                     reset_arm();
-                    ros::Duration(1.2).sleep();
+                    ros::Duration(1.4).sleep();
                     sendBaseVel(0,0,0);
                     tag_sub.shutdown();
                     return BT::NodeStatus::SUCCESS;
