@@ -61,7 +61,7 @@ public:
     }
     void onHalted() override
     {
-    
+        tag_sub.shutdown();
     }
 private:
     void tag_callback(const apriltag_ros::AprilTagDetectionArray::ConstPtr& msg)

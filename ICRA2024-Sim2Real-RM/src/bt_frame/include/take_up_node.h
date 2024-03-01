@@ -116,61 +116,63 @@ public:
         else
         {
 
-            if(take_node_state==0)
+            
+            //第一次进入，找到目标方块
+            if(tag_id==-1)
             {
-                //第一次进入，找到目标方块
-                if(tag_id==-1)
+                for(size_t i = 0; i < msg->detections.size(); i++)
                 {
-                    for(size_t i = 0; i < msg->detections.size(); i++)
+                        tag_id = msg->detections[i].id[0];
+                        break;
+                }
+            }
+            //第二次进入，锁定目标方块
+            else{
+
+                vector<int> detected_id;
+                for(size_t i = 0; i < msg->detections.size(); i++)
+                {
+                    if(msg->detections[i].id[0]==tag_id)
                     {
-                            tag_id = msg->detections[i].id[0];
-                            
-                            break;
+                        detected_id.push_back(i);
+
                     }
                 }
-                //第二次进入，锁定目标方块
-                else{
+                if(detected_id.size()==0)
+                {
+                    ROS_INFO("The target block is not detected!!");
+                    block_detected = false;
+                }
+                else if(detected_id.size()==1)
+                {
 
-                    vector<int> detected_id;
-                    for(size_t i = 0; i < msg->detections.size(); i++)
-                    {
-                        if(msg->detections[i].id[0]==tag_id)
-                        {
-                            detected_id.push_back(i);
-
-                        }
-                    }
-                    if(detected_id.size()==0)
-                    {
-                        ROS_INFO("The target block is not detected!!");
-                        block_detected = false;
-                        return;
-                    }
-                    else if(detected_id.size()==1)
-                    {
-
-                        tag_detection_pose = msg->detections[detected_id[0]].pose;
-                        block_detected = true;
-                    }
-                    else if(detected_id.size()==2)
-                    {
-                        tag_detection_pose.header = msg->detections[detected_id[0]].pose.header;
-                        tag_detection_pose.pose.pose.position.x = (msg->detections[detected_id[0]].pose.pose.pose.position.x + msg->detections[detected_id[1]].pose.pose.pose.position.x)/2;
-                        tag_detection_pose.pose.pose.position.y = (msg->detections[detected_id[0]].pose.pose.pose.position.y + msg->detections[detected_id[1]].pose.pose.pose.position.y)/2;
-                        tag_detection_pose.pose.pose.position.z = (msg->detections[detected_id[0]].pose.pose.pose.position.z + msg->detections[detected_id[1]].pose.pose.pose.position.z)/2;
-                        tag_detection_pose.pose.pose.orientation.x = msg->detections[detected_id[0]].pose.pose.pose.orientation.x;
-                        tag_detection_pose.pose.pose.orientation.y = msg->detections[detected_id[0]].pose.pose.pose.orientation.y;
-                        tag_detection_pose.pose.pose.orientation.z = msg->detections[detected_id[0]].pose.pose.pose.orientation.z;
-                        tag_detection_pose.pose.pose.orientation.w = msg->detections[detected_id[0]].pose.pose.pose.orientation.w;
-                        block_detected = true;
-                    }
+                    tag_detection_pose = msg->detections[detected_id[0]].pose;
+                    block_detected = true;
                     tag_kalman_filter.Predict();
                     tag_kalman_filter.Update(Eigen::Vector2d(tag_detection_pose.pose.pose.position.x,tag_detection_pose.pose.pose.position.z));
                     tag_detection_pose.pose.pose.position.x = tag_kalman_filter.GetState()(0);
                     tag_detection_pose.pose.pose.position.z = tag_kalman_filter.GetState()(1);
                 }
-
+                else if(detected_id.size()==2)
+                {
+                    tag_detection_pose.header = msg->detections[detected_id[0]].pose.header;
+                    tag_detection_pose.pose.pose.position.x = (msg->detections[detected_id[0]].pose.pose.pose.position.x + msg->detections[detected_id[1]].pose.pose.pose.position.x)/2;
+                    tag_detection_pose.pose.pose.position.y = (msg->detections[detected_id[0]].pose.pose.pose.position.y + msg->detections[detected_id[1]].pose.pose.pose.position.y)/2;
+                    tag_detection_pose.pose.pose.position.z = (msg->detections[detected_id[0]].pose.pose.pose.position.z + msg->detections[detected_id[1]].pose.pose.pose.position.z)/2;
+                    tag_detection_pose.pose.pose.orientation.x = msg->detections[detected_id[0]].pose.pose.pose.orientation.x;
+                    tag_detection_pose.pose.pose.orientation.y = msg->detections[detected_id[0]].pose.pose.pose.orientation.y;
+                    tag_detection_pose.pose.pose.orientation.z = msg->detections[detected_id[0]].pose.pose.pose.orientation.z;
+                    tag_detection_pose.pose.pose.orientation.w = msg->detections[detected_id[0]].pose.pose.pose.orientation.w;
+                    block_detected = true;
+                    tag_kalman_filter.Predict();
+                    tag_kalman_filter.Update(Eigen::Vector2d(tag_detection_pose.pose.pose.position.x,tag_detection_pose.pose.pose.position.z));
+                    tag_detection_pose.pose.pose.position.x = tag_kalman_filter.GetState()(0);
+                    tag_detection_pose.pose.pose.position.z = tag_kalman_filter.GetState()(1);
+                }
+                
             }
+
+            
 
         }
 
@@ -215,29 +217,17 @@ public:
         std_msgs::Int32MultiArray target_cube_num_msg;
         target_cube_num_msg.data=target_cube_num;
         target_cube_num_pub.publish(target_cube_num_msg);
-        if(tag_id==-1)
+        if(tag_id==-1||block_detected==false)
         {
             no_need_block_time++;
         }
-        if(no_need_block_time>20)
+        if(no_need_block_time>30)
         {
             tag_detection_status_sub.shutdown();
             cout<<"No need block"<<endl;
             return NodeStatus::FAILURE;
         }
-        if(!block_detected&&target_tag_map_pose.header.frame_id!="map")
-        {
-            geometry_msgs::Twist twist;
-            twist.linear.x = 0;
-            twist.linear.y = 0;
-            twist.linear.z = 0;
-            twist.angular.x = 0;
-            twist.angular.y = 0;
-            twist.angular.z = 0;
-            cmd_pub.publish(twist);
-            return NodeStatus::FAILURE;
-            
-        }
+        
         if(!wall_beside && block_detected)
         {   
             tf::Transform transform;
@@ -349,7 +339,19 @@ public:
 
 
         }
-
+        if(!block_detected&&target_tag_map_pose.header.frame_id!="map")
+            {
+                geometry_msgs::Twist twist;
+                no_need_block_time++;
+                twist.linear.x = 0;
+                twist.linear.y = 0;
+                twist.linear.z = 0;
+                twist.angular.x = 0;
+                twist.angular.y = 0;
+                twist.angular.z = 0;
+                cmd_pub.publish(twist);
+                
+            }
         if(!block_detected && target_tag_map_pose.header.frame_id=="map")
         {
             ROS_INFO("The target block was blocked by other tag!");
@@ -434,7 +436,7 @@ public:
     }
     void onHalted() override
     {
-
+        tag_detection_status_sub.shutdown();
     }
 private:
     bool wall_beside;

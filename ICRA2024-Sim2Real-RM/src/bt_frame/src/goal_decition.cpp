@@ -131,7 +131,7 @@ void tagCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr & msg)
             continue;
         double dist_ = 0;
         GetGlobalRobotPose(tf_listener_, "map", robot_gobal_pose_);
-        dist_ = pow(tag_map_pose.pose.position.x - robot_gobal_pose_.pose.position.x, 2) + pow(tag_map_pose.pose.position.y - robot_gobal_pose_.pose.position.y, 2);
+        dist_ = sqrt(pow(tag_map_pose.pose.position.x - robot_gobal_pose_.pose.position.x, 2) + pow(tag_map_pose.pose.position.y - robot_gobal_pose_.pose.position.y, 2));
         double w = dist_ + tag_map_pose.pose.position.y;
         // if(poses[it.id[0]].pose.position.x == 0)
         {
@@ -335,6 +335,40 @@ int main(int argc, char** argv) {
     while (ros::ok())
     {
         GetGlobalRobotPose(tf_listener_, "map", robot_gobal_pose_);
+        if(goal_reached && !detected)
+        {
+            double base_dist[4];
+            int base_index = -1;
+            base_dist[0] = pow(robot_gobal_pose_.pose.position.x - 0.8, 2) + pow(robot_gobal_pose_.pose.position.y - 1.0, 2);
+            base_dist[1] = pow(robot_gobal_pose_.pose.position.x - 1.86, 2) + pow(robot_gobal_pose_.pose.position.y + 0.1, 2);
+            base_dist[2] = pow(robot_gobal_pose_.pose.position.x - 1.3, 2) + pow(robot_gobal_pose_.pose.position.y - 2.9, 2);
+            base_dist[3] = pow(robot_gobal_pose_.pose.position.x - 1.4, 2) + pow(robot_gobal_pose_.pose.position.y - 1.7, 2);
+
+            double min = base_dist[0];
+            for(int k = 0;k < 4;k++)
+            {
+                if(base_dist[k] < min)
+                {
+                    min = base_dist[k];
+                    base_index = k;
+                }
+            }
+
+            switch (base_index)
+            {
+                case 0:
+                    place1.clear();
+                    break;
+                case 1:
+                    place2.clear();
+                    break;
+                case 2:
+                    place3.clear();
+                    break;
+                default:
+                    break;
+            }
+        }
         if(find_three_state && first_find)
         {
             //三点巡航
@@ -641,7 +675,7 @@ int main(int argc, char** argv) {
                     switch_mode = true;
                     found[0] = false;
                 }
-                int tag_id;
+                int tag_id = -1;
                 for(int k = 0;k < place1.size();k++)
                     if(place1[k] != -1)
                     {
@@ -673,13 +707,14 @@ int main(int argc, char** argv) {
                             state = -1;
                             std::cout << "target position : " << goal.x << " " << goal.y << std::endl;
                         }
-                    } 
-                }
-                catch(const std::out_of_range& e)
+                    }  
+                }     
+                catch(const std::exception& e)
                 {
-                    std::cerr << e.what() << '\n';
+                    ROS_ERROR("out of range: %s", e.what());
+                    state = 0;
+                    switch_mode = true;
                 }
-                      
             }
             if(found[1])
             {
@@ -709,7 +744,7 @@ int main(int argc, char** argv) {
                     found[1] = false;
                     switch_mode = true;
                 }
-                int tag_id;
+                int tag_id = -1;
                 for(int k = 0;k < place2.size();k++)
                     if(place2[k] != -1)
                     {
@@ -743,11 +778,12 @@ int main(int argc, char** argv) {
                         }
                     }
                 }
-                catch(const std::out_of_range& e)
+                catch(const std::exception& e)
                 {
-                    ROS_ERROR("error: %s", e.what());
+                    ROS_ERROR("out of range: %s", e.what());
+                    state = 1;
+                    switch_mode = true;
                 }
-                
             }
             if(found[2])     
             {
@@ -777,7 +813,7 @@ int main(int argc, char** argv) {
                     found[2] = false;
                     switch_mode = true;
                 }
-                int tag_id;
+                int tag_id = -1;
                 for(int k = 0;k < place1.size();k++)
                     if(place1[k] != -1)
                     {
@@ -811,11 +847,12 @@ int main(int argc, char** argv) {
                         }
                     }
                 }
-                catch(const std::out_of_range& e)
+                catch(const std::exception& e)
                 {
-                    std::cerr << e.what() << '\n';
+                    ROS_ERROR("out of range: %s", e.what());
+                    state = 2;
+                    switch_mode = true;
                 }
-                
             }
             if(!found[0] && !found[1] && !found[2])
             {
@@ -965,40 +1002,7 @@ int main(int argc, char** argv) {
                     break;
                 }
         }
-        if(goal_reached && !detected)
-        {
-            double base_dist[4];
-            int base_index = -1;
-            base_dist[0] = pow(robot_gobal_pose_.pose.position.x - 0.8, 2) + pow(robot_gobal_pose_.pose.position.y - 1.0, 2);
-            base_dist[1] = pow(robot_gobal_pose_.pose.position.x - 1.86, 2) + pow(robot_gobal_pose_.pose.position.y + 0.1, 2);
-            base_dist[2] = pow(robot_gobal_pose_.pose.position.x - 1.3, 2) + pow(robot_gobal_pose_.pose.position.y - 2.9, 2);
-            base_dist[3] = pow(robot_gobal_pose_.pose.position.x - 1.4, 2) + pow(robot_gobal_pose_.pose.position.y - 1.7, 2);
-
-            double min = base_dist[0];
-            for(int k = 0;k < 4;k++)
-            {
-                if(base_dist[k] < min)
-                {
-                    min = base_dist[k];
-                    base_index = k;
-                }
-            }
-
-            switch (base_index)
-            {
-                case 0:
-                    place1.clear();
-                    break;
-                case 1:
-                    place2.clear();
-                    break;
-                case 2:
-                    place3.clear();
-                    break;
-                default:
-                    break;
-            }
-        }
+        
         position_set_pub.publish(position_state);
         ros::spinOnce();
         loop_rate.sleep();        

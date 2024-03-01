@@ -35,11 +35,7 @@ public:
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> diff = end-start;
         std::cout << "Time from start: " << diff.count() << std::endl;
-        if(diff.count() > 250)
-        {
-            return BT::NodeStatus::SUCCESS;
-        }
-        if(count>6)
+        if(count>10)
         {
             UpdateTransform(tf_listener_, "map", "camera_color_optical_frame",ros::Time(0), cam_to_map);
             geometry_msgs::PoseStamped highest_tag_map_pose;

@@ -27,14 +27,12 @@ public:
         cmd_pub = node_.advertise<geometry_msgs::Twist>("/cmd_vel", 10);
         arm_gripper_pub=node_.advertise<geometry_msgs::Point>("arm_gripper", 2);
         arm_position_pub=node_.advertise<geometry_msgs::Pose>("arm_position", 2);
-        reached_flag = false;
-        detected=false;
+        
         arm_high=0;
         y_pid = PIDController(y_param);
         x_pid = PIDController(x_param);
         take_cube_num=-1;
-        aim_tag_id=-1;
-        first_place=true;
+    
     }
 
     static BT::PortsList providedPorts()
@@ -55,6 +53,7 @@ public:
         watchboard_pose.header.frame_id = "none";
         y_done=false;
         first_tag=false;
+        detected=false;
         goal_msg.target_pose.header.frame_id = "map";
         goal_msg.target_pose.header.stamp = ros::Time::now();
         goal_msg.target_pose.pose.position.x = 1.18;
@@ -240,7 +239,7 @@ public:
                 }
                 else{
                     sendBaseVel(0,0,0);
-                    
+                    ros::Duration(1).sleep();
                     place_arm();
                     ros::Duration(0.8).sleep();
                     sendBaseVel(0,0,0);
@@ -251,7 +250,7 @@ public:
                     reset_arm();
                     ros::Duration(1.2).sleep();
                     sendBaseVel(0,0,0);
-                    
+                    tag_sub.shutdown();
                     return BT::NodeStatus::SUCCESS;
                 }
 
@@ -378,12 +377,11 @@ private:
     int aim_tag_id;
     int movebase_reset_try=0;
     ros::Publisher cmd_pub;
-    bool reached_flag=false;
+
     bool detected=false;
     bool nav_done;
     bool y_done;
     bool first_tag;
-    bool first_place;
     bool high_detected_mode;
     int arm_high;
     vector<double> x_param = {1, 0.01, 0.01};
