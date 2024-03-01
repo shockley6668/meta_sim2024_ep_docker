@@ -291,7 +291,7 @@ public:
             {
                 float target_x=watchboard_pose.pose.position.x-0.27;
                 std::cout<<"target_x"<<target_x<<std::endl;
-                if(abs(target_x-robot_gobal_pose_.pose.position.x)>0.01)
+                if(abs(target_x-robot_gobal_pose_.pose.position.x)>0.005)
                 {
                     float cmd_x=x_pid.calculate(target_x, robot_gobal_pose_.pose.position.x);
                     sendBaseVel(cmd_x,0,0);
