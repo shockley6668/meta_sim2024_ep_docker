@@ -1,6 +1,16 @@
 # meta_sim2024_ep_docker
  meta_sim2024_ep_docker
+本仓库为icra simtoreal（http://www.sim2real.net/track/track?nav=RMUS2024&type=nav&t=1712890299058）metasim团队解决方案
+本项目主要代码在src中，有以下功能包：
 
+bt_frame   行为树逻辑代码
+carto_navigaion 基于cartographer 和 movebase导航包
+rmus_solution  模板匹配识别
+simple_planner 基于三次样条差值的路径规划及轨迹跟踪
+apriltag_ros   魔改过自定义生成的apriltag包，主要用于数字识别
+apriltag 
+
+<-----------------------------------以下为更新记录----------------------------------------->
 第一次用需要先build一下,即前往/ICRA2024-Sim2Real-RM目录下运行CLIENT_IMAGE=meta_sim/test:v1.3 bash scripts/build.sh
 
 目前导航方法有两种，一种是movebase，一种是simple planner
