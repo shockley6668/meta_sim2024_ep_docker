@@ -1,67 +1,77 @@
-# meta_sim2024_ep_docker
- meta_sim2024_ep_docker
-本仓库为icra simtoreal（http://www.sim2real.net/track/track?nav=RMUS2024&type=nav&t=1712890299058）metasim团队解决方案
-本项目主要代码在src中，有以下功能包：
+This repository is the MetaSim team's solution for the Icra Simtoreal ([http://www.sim2real.net/track/track?nav=RMUS2024&type=nav&t=1712890299058](http://www.sim2real.net/track/track?nav=RMUS2024&type=nav&t=1712890299058)) competition.
 
-bt_frame   行为树逻辑代码
+For detailed technical reports, please refer to the release notes.
 
-carto_navigaion 基于cartographer 和 movebase导航包
+The main code for this project is located in the src directory and includes the following packages:
 
-rmus_solution  模板匹配识别
+* **bt_frame:** Behavior tree logic code
+* **carto_navigation:** Navigation package based on cartographer and movebase
+* **rmus_solution:** Template matching recognition
+* **simple_planner:** Path planning and trajectory tracking based on cubic spline interpolation
+* **apriltag_ros:** Modified and custom-generated apriltag package, mainly used for number recognition
+* **apriltag:**
 
-simple_planner 基于三次样条差值的路径规划及轨迹跟踪
+## Update History:
 
-apriltag_ros   魔改过自定义生成的apriltag包，主要用于数字识别
+**First-time use:**
 
-apriltag 
+1. Build the project: Go to the `/ICRA2024-Sim2Real-RM` directory and run `CLIENT_IMAGE=meta_sim/test:v1.3 bash scripts/build.sh`
 
-<-----------------------------------以下为更新记录----------------------------------------->
+**Navigation Methods:**
 
-第一次用需要先build一下,即前往/ICRA2024-Sim2Real-RM目录下运行CLIENT_IMAGE=meta_sim/test:v1.3 bash scripts/build.sh
+There are currently two navigation methods:
 
-目前导航方法有两种，一种是movebase，一种是simple planner
+1. **movebase:** This method uses the movebase: [移除了无效网址] package for navigation.
+2. **simple planner:** This method uses the `simple_planner` package for navigation.
 
-simple planner使用方法
-1.在src/simple_planner/launch/planner.launch下修改
+**Using the simple planner:**
 
-```<param name="point_num" value="3"/>  ```
+1. Modify the `planner.launch` file in `src/simple_planner/launch`:
 
-意思是通过三次样条曲线插值，把三个点变成一条平滑的曲线，可通过修改value使得曲线更平滑，但你也要打更多的点。
-```
-/target_yaw 到达目标点的yaw角度（rad）
-/clicked_point 用于发布离散的点,消息类型：geometry_msgs/PointStamped
-
-```
-
-2024.2.14  oplin 更改记录
-1. 将 `apriltag_ros` 中的去除重复逻辑进行了修改，
-现在当 `setting.yaml` 中不设置 `remove_duplicates`为false时，会自动去除检测到的多个同一id的tag，**并保留唯一一个此id的tag检测结果**。
-筛选的标准为： 当检测到多个同一id的tag时，会筛选出其中**面积最大**的那个tag作为结果。
-
-3. 将 `apriltag_ros` 中对图像增强的方式由*二值化*更改成了*提高对比度*，希望能实现在实地测试中更好的鲁棒性。
-  
-4. (用于后面 画面处理的调试)加入了一个 `threshold_image` 的包，可以读入话题进行图像处理，然后发布二值化或者对比度增强后的图像话题。
-这个包有两个节点, 分别是
-
-```shell
-contrast_node // 对比度画面
-threshold_node // 二值化画面
+```xml
+<param name="point_num" value="3"/>
 ```
 
-如果要使用, 请输入
-```shell
+This means that three points are interpolated using cubic spline interpolation to create a smooth curve. You can make the curve smoother by modifying the `value`, but you will need to add more points.
+
+```xml
+/target_yaw` The yaw angle (rad) of the target point
+/clicked_point` Used to publish discrete points, message type: geometry_msgs/PointStamped
+```
+
+**Changes made on 2024.2.14:**
+
+1. Modified the duplicate removal logic in `apriltag_ros`. Now, when `remove_duplicates` is not set to `false` in `setting.yaml`, multiple tags with the same ID will be automatically removed, **and only one detection result for this ID will be retained**. The filtering criterion is: when multiple tags with the same ID are detected, the tag with the **largest area** is selected as the result.
+
+2. Changed the image enhancement method in `apriltag_ros` from *binarization* to *contrast enhancement* in the hope of achieving better robustness in real-world testing.
+
+3. (For debugging image processing later) Added a `threshold_image` package that can read in topics for image processing and then publish binarized or contrast-enhanced image topics. This package has two nodes:
+
+```bash
+contrast_node // Contrast image
+threshold_node // Binaries image
+```
+
+To use it, enter
+
+```bash
 rosrun threshold threshold_node
 or
 rosrun threshold contrast_node
 ```
-如果找不到threshold这个包, 请前往 `工作目录/devel/lib/threshold` 下直接运行可执行文件
-** 在 apriltag_ros中使用画面: **
-```shell
+
+If you cannot find the `threshold` package, please go to `working directory/devel/lib/threshold` and run the executable directly
+
+**Using images in apriltag_ros:**
+
+```bash
 roslaunch apriltag_ros continuous_detection.launch image_rect:=/threshold/image camera_info_topic:=/threshold/camera_info
 or
 roslaunch apriltag_ros continuous_detection.launch image_rect:=/contrast/image camera_info_topic:=/contrast/camera_info
 ```
-4. 修改了Dockerfile，安装了rqt还有用于键盘操控机器人的包
-```shell
+
+4. Modified the Dockerfile to install rqt and the package for keyboard control of the robot
+
+```bash
 apt-get install -y ros-noetic-teleop-twist-keyboard ros-noetic-rqt ros-noetic-rqt-common-plugins
 ```
